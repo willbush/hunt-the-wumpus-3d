@@ -9,7 +9,11 @@ namespace HuntTheWumpus3d.Shapes
         /// <summary>
         ///     Constructs a new sphere primitive, using default settings.
         /// </summary>
-        public Sphere(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 16)
+        public Sphere(GraphicsDevice graphicsDevice) : this(graphicsDevice, 0.6f, 16)
+        {
+        }
+
+        public Sphere(GraphicsDevice graphicsDevice, Vector3 position) : this(graphicsDevice, 0.6f, 16, position)
         {
         }
 
@@ -17,10 +21,12 @@ namespace HuntTheWumpus3d.Shapes
         ///     Constructs a new sphere primitive,
         ///     with the specified size and tessellation level.
         /// </summary>
-        public Sphere(GraphicsDevice graphicsDevice, float diameter, int tessellation)
+        public Sphere(GraphicsDevice graphicsDevice, float diameter, int tessellation, Vector3 position = new Vector3())
         {
+            Position = position;
+
             if (tessellation < 3)
-                throw new ArgumentOutOfRangeException("tessellation");
+                throw new ArgumentOutOfRangeException(nameof(tessellation));
 
             int verticalSegments = tessellation;
             int horizontalSegments = tessellation * 2;

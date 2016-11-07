@@ -6,10 +6,20 @@ namespace HuntTheWumpus3d.Shapes
 {
     public class Cylinder : GeometricShape
     {
+        private const float DefaultHeight = 0.5f;
+        private const float DefaultDiameter = 0.2f;
+        private const int DefaultTessellation = 32;
+
         /// <summary>
         ///     Constructs a new cylinder primitive, using default settings.
         /// </summary>
-        public Cylinder(GraphicsDevice graphicsDevice) : this(graphicsDevice, 1, 1, 32)
+        public Cylinder(GraphicsDevice graphicsDevice)
+            : this(graphicsDevice, DefaultHeight, DefaultDiameter, DefaultTessellation)
+        {
+        }
+
+        public Cylinder(GraphicsDevice graphicsDevice, Vector3 position)
+            : this(graphicsDevice, DefaultHeight, DefaultDiameter, DefaultTessellation, position)
         {
         }
 
@@ -17,9 +27,11 @@ namespace HuntTheWumpus3d.Shapes
         ///     Constructs a new cylinder primitive,
         ///     with the specified size and tessellation level.
         /// </summary>
-        public Cylinder(GraphicsDevice graphicsDevice,
-            float height, float diameter, int tessellation)
+        public Cylinder(GraphicsDevice graphicsDevice, float height, float diameter, int tessellation,
+            Vector3 position = new Vector3())
         {
+            Position = position;
+
             if (tessellation < 3)
                 throw new ArgumentOutOfRangeException("tessellation");
 
@@ -76,9 +88,7 @@ namespace HuntTheWumpus3d.Shapes
             // Create cap vertices.
             for (var i = 0; i < tessellation; i++)
             {
-                var position = GetCircleVector(i, tessellation) * radius +
-                               normal * height;
-
+                var position = GetCircleVector(i, tessellation) * radius + normal * height;
                 AddVertex(position, normal);
             }
         }

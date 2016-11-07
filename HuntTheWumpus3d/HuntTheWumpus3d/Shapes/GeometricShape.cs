@@ -18,6 +18,8 @@ namespace HuntTheWumpus3d.Shapes
         // method copies the vertex and index data into these buffers, which
         // store it on the GPU ready for efficient rendering.
         private VertexBuffer _vertexBuffer;
+        public Vector3 Position { get; internal set; }
+        public Matrix Rotation { get; internal set; } = Matrix.Identity;
 
         /// <summary>
         ///     Queries the index of the current vertex. This starts at
@@ -40,6 +42,7 @@ namespace HuntTheWumpus3d.Shapes
         /// </summary>
         protected void AddVertex(Vector3 position, Vector3 normal)
         {
+            position += Position;
             _vertices.Add(new VertexPositionNormal(position, normal));
         }
 
@@ -137,7 +140,7 @@ namespace HuntTheWumpus3d.Shapes
         public void Draw(Matrix world, Matrix view, Matrix projection, Color color)
         {
             // Set BasicEffect parameters.
-            _basicEffect.World = world;
+            _basicEffect.World = Rotation * world;
             _basicEffect.View = view;
             _basicEffect.Projection = projection;
             _basicEffect.DiffuseColor = color.ToVector3();
