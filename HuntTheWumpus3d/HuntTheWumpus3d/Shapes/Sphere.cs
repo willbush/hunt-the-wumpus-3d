@@ -6,32 +6,20 @@ namespace HuntTheWumpus3d.Shapes
 {
     public class Sphere : GeometricShape
     {
-        /// <summary>
-        ///     Constructs a new sphere primitive, using default settings.
-        /// </summary>
-        public Sphere(GraphicsDevice graphicsDevice) : this(graphicsDevice, 0.6f, 16)
-        {
-        }
-
-        public Sphere(GraphicsDevice graphicsDevice, Vector3 position) : this(graphicsDevice, 0.6f, 16, position)
-        {
-        }
+        private const float Diameter = 0.6f;
+        private const int Tessellation = 16;
 
         /// <summary>
         ///     Constructs a new sphere primitive,
         ///     with the specified size and tessellation level.
         /// </summary>
-        public Sphere(GraphicsDevice graphicsDevice, float diameter, int tessellation, Vector3 position = new Vector3())
+        public Sphere(GraphicsDevice graphicsDevice, Vector3 position = new Vector3())
         {
             Position = position;
 
-            if (tessellation < 3)
-                throw new ArgumentOutOfRangeException(nameof(tessellation));
-
-            int verticalSegments = tessellation;
-            int horizontalSegments = tessellation * 2;
-
-            float radius = diameter / 2;
+            const int verticalSegments = Tessellation;
+            const int horizontalSegments = Tessellation * 2;
+            const float radius = Diameter / 2;
 
             // Start with a single vertex at the bottom of the sphere.
             AddVertex(Vector3.Down * radius, Vector3.Down);
@@ -95,7 +83,6 @@ namespace HuntTheWumpus3d.Shapes
                 AddIndex(CurrentVertex - 2 - (i + 1) % horizontalSegments);
                 AddIndex(CurrentVertex - 2 - i);
             }
-
             InitializePrimitive(graphicsDevice);
         }
     }

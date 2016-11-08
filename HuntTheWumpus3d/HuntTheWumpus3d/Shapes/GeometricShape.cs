@@ -150,16 +150,7 @@ namespace HuntTheWumpus3d.Shapes
             var device = _basicEffect.GraphicsDevice;
             device.DepthStencilState = DepthStencilState.Default;
 
-            if (Color.A < 255)
-            {
-                // Set renderstates for alpha blended rendering.
-                device.BlendState = BlendState.AlphaBlend;
-            }
-            else
-            {
-                // Set render states for opaque rendering.
-                device.BlendState = BlendState.Opaque;
-            }
+            device.BlendState = Color.A < 255 ? BlendState.AlphaBlend : BlendState.Opaque;
 
             // Draw the model, using BasicEffect.
             Draw(_basicEffect);
