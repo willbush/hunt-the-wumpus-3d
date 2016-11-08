@@ -18,6 +18,7 @@ namespace HuntTheWumpus3d.Shapes
         // method copies the vertex and index data into these buffers, which
         // store it on the GPU ready for efficient rendering.
         private VertexBuffer _vertexBuffer;
+        public Color Color { get; set; } = Color.Black;
         public Vector3 Position { get; internal set; }
         public Matrix Rotation { get; internal set; } = Matrix.Identity;
 
@@ -137,19 +138,19 @@ namespace HuntTheWumpus3d.Shapes
         ///     for 3D model rendering, so you do not need to set these states before
         ///     you call it.
         /// </summary>
-        public void Draw(Matrix world, Matrix view, Matrix projection, Color color)
+        public void Draw(Matrix world, Matrix view, Matrix projection)
         {
             // Set BasicEffect parameters.
             _basicEffect.World = Rotation * world;
             _basicEffect.View = view;
             _basicEffect.Projection = projection;
-            _basicEffect.DiffuseColor = color.ToVector3();
-            _basicEffect.Alpha = color.A / 255.0f;
+            _basicEffect.DiffuseColor = Color.ToVector3();
+            _basicEffect.Alpha = Color.A / 255.0f;
 
             var device = _basicEffect.GraphicsDevice;
             device.DepthStencilState = DepthStencilState.Default;
 
-            if (color.A < 255)
+            if (Color.A < 255)
             {
                 // Set renderstates for alpha blended rendering.
                 device.BlendState = BlendState.AlphaBlend;

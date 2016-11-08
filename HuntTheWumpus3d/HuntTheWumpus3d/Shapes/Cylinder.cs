@@ -6,59 +6,40 @@ namespace HuntTheWumpus3d.Shapes
 {
     public class Cylinder : GeometricShape
     {
-        private const float DefaultHeight = 0.5f;
-        private const float DefaultDiameter = 0.2f;
-        private const int DefaultTessellation = 32;
-
-        /// <summary>
-        ///     Constructs a new cylinder primitive, using default settings.
-        /// </summary>
-        public Cylinder(GraphicsDevice graphicsDevice)
-            : this(graphicsDevice, DefaultHeight, DefaultDiameter, DefaultTessellation)
-        {
-        }
-
-        public Cylinder(GraphicsDevice graphicsDevice, Vector3 position)
-            : this(graphicsDevice, DefaultHeight, DefaultDiameter, DefaultTessellation, position)
-        {
-        }
+        private const float Diameter = 0.2f;
+        private const int Tessellation = 32;
 
         /// <summary>
         ///     Constructs a new cylinder primitive,
         ///     with the specified size and tessellation level.
         /// </summary>
-        public Cylinder(GraphicsDevice graphicsDevice, float height, float diameter, int tessellation,
-            Vector3 position = new Vector3())
+        public Cylinder(GraphicsDevice graphicsDevice, Vector3 p1, Vector3 p2)
         {
-            Position = position;
-
-            if (tessellation < 3)
-                throw new ArgumentOutOfRangeException("tessellation");
-
+            float height = Vector3.Distance(p1, p2);
             height /= 2;
 
-            float radius = diameter / 2;
+            float radius = Diameter / 2;
 
             // Create a ring of triangles around the outside of the cylinder.
-            for (var i = 0; i < tessellation; i++)
+            for (var i = 0; i < Tessellation; i++)
             {
-                var normal = GetCircleVector(i, tessellation);
+                var normal = GetCircleVector(i, Tessellation);
 
-                AddVertex(normal * radius + Vector3.Up * height, normal);
-                AddVertex(normal * radius + Vector3.Down * height, normal);
+                AddVertex(normal * radius + p1 * height, normal);
+                AddVertex(normal * radius + p2 * height, normal);
 
                 AddIndex(i * 2);
                 AddIndex(i * 2 + 1);
-                AddIndex((i * 2 + 2) % (tessellation * 2));
+                AddIndex((i * 2 + 2) % (Tessellation * 2));
 
                 AddIndex(i * 2 + 1);
-                AddIndex((i * 2 + 3) % (tessellation * 2));
-                AddIndex((i * 2 + 2) % (tessellation * 2));
+                AddIndex((i * 2 + 3) % (Tessellation * 2));
+                AddIndex((i * 2 + 2) % (Tessellation * 2));
             }
 
             // Create flat triangle fan caps to seal the top and bottom.
-            CreateCap(tessellation, height, radius, Vector3.Up);
-            CreateCap(tessellation, height, radius, Vector3.Down);
+            CreateCap(Tessellation, height, radius, p1);
+            CreateCap(Tessellation, height, radius, p2);
 
             InitializePrimitive(graphicsDevice);
         }

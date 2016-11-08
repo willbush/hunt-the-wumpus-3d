@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using HuntTheWumpus3d.Shapes;
 using Microsoft.Xna.Framework;
@@ -14,17 +13,16 @@ namespace HuntTheWumpus3d
         // Store a list of tint colors, plus which one is currently selected.
         private readonly List<Color> _colors = new List<Color>
         {
-            Color.Red,
             Color.Green,
             Color.Blue,
             Color.White,
-            Color.Black
+            Color.Red,
+            Color.Yellow,
+            Color.Violet,
         };
 
-        private readonly List<GeometricShape> _hallways = new List<GeometricShape>();
-
         // Store a list of primitive models, plus which one is currently selected.
-        private readonly List<GeometricShape> _rooms = new List<GeometricShape>();
+        private readonly GeometricShape[] _rooms = new GeometricShape[20];
         private Vector3 _cameraPosition;
 
         private int _currentColorIndex;
@@ -37,6 +35,7 @@ namespace HuntTheWumpus3d
         private KeyboardState _lastKeyboardState;
         private MouseState _lastMouseState;
         private Matrix _projection;
+        private int _roomIndex;
         private Matrix _view;
 
         // store a wireframe rasterize state
@@ -66,8 +65,35 @@ namespace HuntTheWumpus3d
 
         protected override void LoadContent()
         {
-            var r = (float) Math.Sqrt(5);
-            MakeDodecahedron(r).ForEach(v => { _rooms.Add(new Sphere(GraphicsDevice, v)); });
+            var vertices = BuildDodecahedron();
+            var spheres = new List<Sphere>();
+            vertices.ForEach(v => spheres.Add(new Sphere(GraphicsDevice, v)));
+            var sphereCreationOrderToRoomNumber = new Dictionary<int, int>
+            {
+                {1, 1},
+                {2, 7},
+                {3, 9},
+                {4, 8},
+                {5, 18},
+                {6, 19},
+                {7, 17},
+                {8, 15},
+                {9, 6},
+                {10, 16},
+                {11, 5},
+                {12, 3},
+                {13, 10},
+                {14, 2},
+                {15, 11},
+                {16, 20},
+                {17, 12},
+                {18, 14},
+                {19, 4},
+                {20, 13}
+            };
+
+            for (int i = 0; i < spheres.Count; ++i)
+                _rooms[sphereCreationOrderToRoomNumber[i + 1] - 1] = spheres[i];
 
             _wireFrameState = new RasterizerState
             {
@@ -77,29 +103,29 @@ namespace HuntTheWumpus3d
         }
 
         /// <summary>
-        /// Generates a list of vertices (in arbitrary order) for a tetrahedron centered on the origin.
+        ///     Generates a list of vertices (in arbitrary order) for a tetrahedron centered on the origin.
         /// </summary>
-        /// <param name="r">The distance of each vertex from origin.</param>
         /// <returns></returns>
-        private static List<Vector3> MakeDodecahedron(float r)
+        private static List<Vector3> BuildDodecahedron()
         {
-            // Calculate constants that will be used to generate vertices
+            var r = (float) Math.Sqrt(5);
             float phi = (float) (Math.Sqrt(5) - 1) / 2; // The golden ratio
 
             var a = (float) (1 / Math.Sqrt(3));
             float b = a / phi;
             float c = a * phi;
 
-            // Generate each vertex
             var vertices = new List<Vector3>();
-            foreach (int i in new[] {-1, 1})
+            var plusOrMinus = new[] {-1, 1};
+
+            foreach (int i in plusOrMinus)
             {
-                foreach (int j in new[] {-1, 1})
+                foreach (int j in plusOrMinus)
                 {
                     vertices.Add(new Vector3(0, i * c * r, j * b * r));
-                    vertices.Add(new Vector3(i * c * r, j * b * r, 0));
                     vertices.Add(new Vector3(i * b * r, 0, j * c * r));
-                    vertices.AddRange(new[] {-1, 1}.Select(k => new Vector3(i * a * r, j * a * r, k * a * r)));
+                    vertices.Add(new Vector3(i * c * r, j * b * r, 0));
+                    vertices.AddRange(plusOrMinus.Select(k => new Vector3(i * a * r, j * a * r, k * a * r)));
                 }
             }
             return vertices;
@@ -137,11 +163,14 @@ namespace HuntTheWumpus3d
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // Draw the current primitive.
+            //// Draw the current primitive.
             var color = _colors[_currentColorIndex];
 
-            _rooms.ForEach(r => r.Draw(_world, _view, _projection, color));
-            _hallways.ForEach(r => r.Draw(_world, _view, _projection, color));
+            _rooms.ToList().ForEach(r =>
+            {
+//                r.Color = color;
+                r.Draw(_world, _view, _projection);
+            });
 
             // Reset the fill mode renderstate.
             GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -162,27 +191,31 @@ namespace HuntTheWumpus3d
 
             // Check for exit.
             if (IsPressed(Keys.Escape))
-            {
                 Exit();
-            }
 
             // Change primitive?
             var viewport = GraphicsDevice.Viewport;
-            int halfWidth = viewport.Width / 2;
-            int halfHeight = viewport.Height / 2;
 
             // Change color?
-            var botLeftOfScreen = new Rectangle(0, halfHeight, halfWidth, halfHeight);
-            if (IsPressed(Keys.B) || LeftMouseIsPressed(botLeftOfScreen))
-            {
+            if (IsPressed(Keys.R))
                 _currentColorIndex = (_currentColorIndex + 1) % _colors.Count;
-            }
 
             // Toggle wireframe?
-            var botRightOfScreen = new Rectangle(halfWidth, halfHeight, halfWidth, halfHeight);
-            if (IsPressed(Keys.Y) || LeftMouseIsPressed(botRightOfScreen))
-            {
+            if (IsPressed(Keys.E))
                 _isWireFrame = !_isWireFrame;
+
+            if (IsPressed(Keys.F))
+            {
+                if (_roomIndex < _rooms.Length)
+                {
+                    _rooms[_roomIndex++].Color = _colors[_currentColorIndex];
+                    _currentColorIndex = (_currentColorIndex + 1) % _colors.Count;
+                }
+                else
+                {
+                    _rooms.ToList().ForEach(r => r.Color = Color.Black);
+                    _roomIndex = 0;
+                }
             }
         }
 
