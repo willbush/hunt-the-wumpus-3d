@@ -38,6 +38,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Infrastructure\Logger.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="WumpusGame.cs" />
     <Compile Include="Program.cs" />
@@ -48,6 +49,9 @@
     <Compile Include="Shapes\VertexPositionNormal.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="MonoGame.Extended">
+      <HintPath>lib\MonoGame.Extended.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK">
       <HintPath>$(MonoGameInstallDirectory)\MonoGame\v3.0\Assemblies\DesktopGL\OpenTK.dll</HintPath>
     </Reference>

@@ -1,20 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.InputListeners;
 
 namespace HuntTheWumpus3d
 {
     public class WumpusGame : Game
     {
+        private readonly KeyboardListener _keyboardListener;
         private Vector3 _cameraPosition;
-
-        private KeyboardState _currentKeyboardState;
-        private MouseState _currentMouseState;
 
         // Are we rendering in wireframe mode?
         private bool _isWireFrame;
-        private KeyboardState _lastKeyboardState;
-        private MouseState _lastMouseState;
         private Map _map;
         private Matrix _projection;
         private Matrix _view;
@@ -26,6 +23,8 @@ namespace HuntTheWumpus3d
 
         public WumpusGame()
         {
+            _keyboardListener = new KeyboardListener();
+
             var g = new GraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth = 1280,
@@ -42,6 +41,15 @@ namespace HuntTheWumpus3d
             _map = new Map(GraphicsDevice);
             _world = new Matrix();
             _cameraPosition = new Vector3(0, 0, 5.5f);
+
+            _keyboardListener.KeyPressed += (sender, args) =>
+            {
+                if (args.Key == Keys.Escape)
+                    Exit();
+
+                if (args.Key == Keys.F)
+                    _isWireFrame = !_isWireFrame;
+            };
             base.Initialize();
         }
 
@@ -61,8 +69,7 @@ namespace HuntTheWumpus3d
 
         protected override void Update(GameTime gameTime)
         {
-            HandleInput();
-
+            _keyboardListener.Update(gameTime);
             GraphicsDevice.RasterizerState = _isWireFrame ? _wireFrameState : RasterizerState.CullCounterClockwise;
 
             // Create camera matrices, making the object spin.
@@ -91,36 +98,6 @@ namespace HuntTheWumpus3d
             GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             base.Draw(gameTime);
-        }
-
-        /// <summary>
-        ///     Handles input for quitting or changing settings.
-        /// </summary>
-        private void HandleInput()
-        {
-            _lastKeyboardState = _currentKeyboardState;
-            _lastMouseState = _currentMouseState;
-
-            _currentKeyboardState = Keyboard.GetState();
-            _currentMouseState = Mouse.GetState();
-
-            if (IsPressed(Keys.Escape))
-                Exit();
-
-            if (IsPressed(Keys.E))
-                _isWireFrame = !_isWireFrame;
-        }
-
-        private bool IsPressed(Keys key)
-        {
-            return _currentKeyboardState.IsKeyDown(key) && _lastKeyboardState.IsKeyUp(key);
-        }
-
-        private bool LeftMouseIsPressed(Rectangle r)
-        {
-            return _currentMouseState.LeftButton == ButtonState.Pressed &&
-                   _lastMouseState.LeftButton != ButtonState.Pressed &&
-                   r.Contains(_currentMouseState.X, _currentMouseState.Y);
         }
     }
 }
