@@ -18,7 +18,7 @@ namespace HuntTheWumpus3d.Shapes
         // method copies the vertex and index data into these buffers, which
         // store it on the GPU ready for efficient rendering.
         private VertexBuffer _vertexBuffer;
-        public Color Color { get; set; } = Color.Black;
+        public Color Color { get; set; } = Color.Violet;
         public Vector3 Position { get; internal set; }
         public Matrix Rotation { get; internal set; } = Matrix.Identity;
 

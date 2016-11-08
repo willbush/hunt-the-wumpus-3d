@@ -1,20 +1,26 @@
-﻿using Microsoft.Xna.Framework;
+﻿using HuntTheWumpus3d.Infrastructure;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.InputListeners;
+using MonoGame.Extended.ViewportAdapters;
 
 namespace HuntTheWumpus3d
 {
     public class WumpusGame : Game
     {
         private readonly KeyboardListener _keyboardListener;
+        private readonly Logger _logger;
         private Vector3 _cameraPosition;
+        private SpriteFont _font;
 
         // Are we rendering in wireframe mode?
         private bool _isWireFrame;
         private Map _map;
         private Matrix _projection;
+        private SpriteBatch _spriteBatch;
         private Matrix _view;
+        private BoxingViewportAdapter _viewportAdapter;
 
         // store a wireframe rasterize state
         private RasterizerState _wireFrameState;
@@ -24,6 +30,7 @@ namespace HuntTheWumpus3d
         public WumpusGame()
         {
             _keyboardListener = new KeyboardListener();
+            _logger = Logger.Instance;
 
             var g = new GraphicsDeviceManager(this)
             {
@@ -38,9 +45,13 @@ namespace HuntTheWumpus3d
 
         protected override void Initialize()
         {
+            const int weight = 900;
+            const int height = 520;
+            _viewportAdapter = new BoxingViewportAdapter(Window, GraphicsDevice, weight, height);
+
             _map = new Map(GraphicsDevice);
             _world = new Matrix();
-            _cameraPosition = new Vector3(0, 0, 5.5f);
+            _cameraPosition = new Vector3(0, 0, 4.5f);
 
             _keyboardListener.KeyPressed += (sender, args) =>
             {
@@ -49,12 +60,16 @@ namespace HuntTheWumpus3d
 
                 if (args.Key == Keys.F)
                     _isWireFrame = !_isWireFrame;
+                if (args.Key == Keys.A)
+                    _logger.Write("How are you doing today? I am fine thanks..");
             };
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
+            _font = Content.Load<SpriteFont>("output");
             _map.LoadContent();
             _wireFrameState = new RasterizerState
             {
@@ -65,6 +80,8 @@ namespace HuntTheWumpus3d
 
         protected override void UnloadContent()
         {
+            _spriteBatch.Dispose();
+            Content.Dispose();
         }
 
         protected override void Update(GameTime gameTime)
@@ -83,7 +100,7 @@ namespace HuntTheWumpus3d
 
             float aspect = GraphicsDevice.Viewport.AspectRatio;
 
-            _view = Matrix.CreateLookAt(_cameraPosition, Vector3.Zero, Vector3.Up);
+            _view = Matrix.CreateLookAt(_cameraPosition, Vector3.Right, Vector3.Up);
             _projection = Matrix.CreatePerspectiveFieldOfView(1, aspect, 1, 10);
 
             base.Update(gameTime);
@@ -91,7 +108,10 @@ namespace HuntTheWumpus3d
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
+            _spriteBatch.Begin(samplerState: SamplerState.PointWrap, transformMatrix: _viewportAdapter.GetScaleMatrix());
+            _logger.Messages.ForEach(m => _spriteBatch.DrawString(_font, m.Value, m.Position, m.Color));
+            _spriteBatch.End();
             _map.Draw(_world, _view, _projection);
 
             // Reset the fill mode renderstate.

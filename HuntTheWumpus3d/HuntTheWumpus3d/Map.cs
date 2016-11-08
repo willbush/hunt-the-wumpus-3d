@@ -56,7 +56,7 @@ namespace HuntTheWumpus3d
         /// <returns></returns>
         private static List<Vector3> BuildDodecahedron()
         {
-            var r = (float) Math.Sqrt(5);
+            var r = (float) Math.Sqrt(3);
             float phi = (float) (Math.Sqrt(5) - 1) / 2; // The golden ratio
 
             var a = (float) (1 / Math.Sqrt(3));
