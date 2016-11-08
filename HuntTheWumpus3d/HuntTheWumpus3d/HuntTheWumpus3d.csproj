@@ -38,8 +38,17 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Entities\BottomlessPit.cs" />
+    <Compile Include="Entities\DeadlyHazzard.cs" />
+    <Compile Include="Entities\GameEntity.cs" />
+    <Compile Include="Entities\Hazzard.cs" />
+    <Compile Include="Entities\Player.cs" />
+    <Compile Include="Entities\Wumpus.cs" />
+    <Compile Include="Infrastructure\EndState.cs" />
     <Compile Include="Infrastructure\Logger.cs" />
+    <Compile Include="Infrastructure\Message.cs" />
     <Compile Include="Map.cs" />
+    <Compile Include="Entities\SuperBats.cs" />
     <Compile Include="WumpusGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

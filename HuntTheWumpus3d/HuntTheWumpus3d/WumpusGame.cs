@@ -9,6 +9,7 @@ namespace HuntTheWumpus3d
 {
     public class WumpusGame : Game
     {
+        private readonly bool _isCheatMode;
         private readonly KeyboardListener _keyboardListener;
         private readonly Logger _logger;
         private Vector3 _cameraPosition;
@@ -27,8 +28,9 @@ namespace HuntTheWumpus3d
 
         private Matrix _world;
 
-        public WumpusGame()
+        public WumpusGame(bool isCheatMode)
         {
+            _isCheatMode = isCheatMode;
             _keyboardListener = new KeyboardListener();
             _logger = Logger.Instance;
 
@@ -49,7 +51,7 @@ namespace HuntTheWumpus3d
             const int height = 520;
             _viewportAdapter = new BoxingViewportAdapter(Window, GraphicsDevice, weight, height);
 
-            _map = new Map(GraphicsDevice);
+            _map = new Map(GraphicsDevice, _isCheatMode);
             _world = new Matrix();
             _cameraPosition = new Vector3(0, 0, 4.5f);
 
