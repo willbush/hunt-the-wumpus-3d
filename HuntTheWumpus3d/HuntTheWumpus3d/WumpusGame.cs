@@ -10,11 +10,11 @@ namespace HuntTheWumpus3d
 {
     public class WumpusGame : Game
     {
+        private readonly InputHandler _inputHandler;
         private readonly bool _isCheatMode;
         private readonly Logger _logger;
         private Vector3 _cameraPosition;
         private SpriteFont _font;
-        private readonly InputHandler _inputHandler;
 
         // Are we rendering in wireframe mode?
         private bool _isWireFrame;
@@ -58,7 +58,7 @@ namespace HuntTheWumpus3d
 
             Play();
 
-            _inputHandler.KeyListener.KeyPressed += (sender, args) =>
+            _inputHandler.KeyListener.KeyReleased += (sender, args) =>
             {
                 if (args.Key == Keys.Escape)
                     Exit();
@@ -74,31 +74,39 @@ namespace HuntTheWumpus3d
             _map.Update();
             _logger.Write(Message.ActionPrompt);
 
-            EventHandler<KeyboardEventArgs> actionToPerformOnKeyPress = null;
-            actionToPerformOnKeyPress = (sender, args) =>
+            EventHandler<KeyboardEventArgs> actionHandler = null;
+            actionHandler = (sender, args) =>
             {
                 switch (args.Key)
                 {
                     case Keys.S:
-                        _inputHandler.KeyListener.KeyPressed -= actionToPerformOnKeyPress;
-                        _map.GetEndState("S");
+                        _inputHandler.KeyListener.KeyReleased -= actionHandler;
+                        _map.PlayerShootArrow(GameOverHandler);
                         break;
                     case Keys.M:
-                        _inputHandler.KeyListener.KeyPressed -= actionToPerformOnKeyPress;
-                        _map.GetEndState("M");
+                        _inputHandler.KeyListener.KeyReleased -= actionHandler;
+                        _map.MovePlayer(GameOverHandler);
                         break;
                     case Keys.Q:
-                        _inputHandler.KeyListener.KeyPressed -= actionToPerformOnKeyPress;
-                        EndState e = _map.GetEndState("Q");
-                        if (e.IsGameOver)
-                        {
-                            e.Print();
-                            RequestPlayAgain();
-                        }
+                        _inputHandler.KeyListener.KeyReleased -= actionHandler;
+                        RequestPlayAgain();
                         break;
                 }
             };
-            _inputHandler.KeyListener.KeyPressed += actionToPerformOnKeyPress;
+            _inputHandler.KeyListener.KeyReleased += actionHandler;
+        }
+
+        private void GameOverHandler(EndState es)
+        {
+            if (es.IsGameOver)
+            {
+                es.Print();
+                RequestPlayAgain();
+            }
+            else
+            {
+                Play();
+            }
         }
 
         private void RequestPlayAgain()
@@ -111,16 +119,16 @@ namespace HuntTheWumpus3d
                 switch (args.Key)
                 {
                     case Keys.Y:
-                        _inputHandler.KeyListener.KeyPressed -= playAgainResponseHandler;
+                        _inputHandler.KeyListener.KeyReleased -= playAgainResponseHandler;
                         RequestMapReset();
                         break;
                     case Keys.N:
-                        _inputHandler.KeyListener.KeyPressed -= playAgainResponseHandler;
+                        _inputHandler.KeyListener.KeyReleased -= playAgainResponseHandler;
                         Exit();
                         break;
                 }
             };
-            _inputHandler.KeyListener.KeyPressed += playAgainResponseHandler;
+            _inputHandler.KeyListener.KeyReleased += playAgainResponseHandler;
         }
 
         private void RequestMapReset()
@@ -133,18 +141,18 @@ namespace HuntTheWumpus3d
                 switch (args.Key)
                 {
                     case Keys.Y:
-                        _inputHandler.KeyListener.KeyPressed -= resetResponseHandler;
+                        _inputHandler.KeyListener.KeyReleased -= resetResponseHandler;
                         _map.Reset();
                         Play();
                         break;
                     case Keys.N:
-                        _inputHandler.KeyListener.KeyPressed -= resetResponseHandler;
+                        _inputHandler.KeyListener.KeyReleased -= resetResponseHandler;
                         _map = new Map(GraphicsDevice, _isCheatMode);
                         Play();
                         break;
                 }
             };
-            _inputHandler.KeyListener.KeyPressed += resetResponseHandler;
+            _inputHandler.KeyListener.KeyReleased += resetResponseHandler;
         }
 
         protected override void LoadContent()

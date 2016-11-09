@@ -209,37 +209,20 @@ namespace HuntTheWumpus3d
             return safeAdjacentRooms.ElementAt(new Random().Next(safeAdjacentRooms.Length));
         }
 
-        /// <summary>
-        ///     Performs given command and returns the game end state depending on the results.
-        /// </summary>
-        /// <param name="command">player's input command</param>
-        /// <returns>game end state</returns>
-        public EndState GetEndState(string command)
+        public void PlayerShootArrow(Action<EndState> gameOverHandler)
         {
-            EndState endState;
-            switch (command)
-            {
-                case "M":
-                    Player.Move();
-                    endState = CheckPlayerMovement();
-                    break;
-                case "S":
-                    endState = Player.ShootArrow(Wumpus.RoomNumber);
-                    break;
-                case "Q":
-                    endState = new EndState(true, "");
-                    break;
-                default:
-                    endState = new EndState();
-                    break;
-            }
-            return endState;
+            Player.ShootArrow(Wumpus.RoomNumber, gameOverHandler);
+        }
+
+        public void MovePlayer(Action<EndState> gameOverHandler)
+        {
+            Player.Move(CheckPlayerMovement, gameOverHandler);
         }
 
         // Game is over if the player moves into a deadly room.
         // If the game's not over but the power got snatched, then loop and check again until the player
         // doesn't get snatched or gets killed.
-        private EndState CheckPlayerMovement()
+        private void CheckPlayerMovement(Action<EndState> callback)
         {
             EndState endState;
             do
@@ -248,7 +231,8 @@ namespace HuntTheWumpus3d
                     .Select(h => h.DetermineEndState(Player.RoomNumber))
                     .FirstOrDefault(s => s.IsGameOver) ?? new EndState();
             } while (!endState.IsGameOver && _superBats.Any(b => b.TrySnatch(Player)));
-            return endState;
+
+            callback(endState);
         }
 
         public static void PrintAdjacentRoomNumbers(int roomNum)

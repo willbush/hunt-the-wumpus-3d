@@ -1,4 +1,6 @@
-﻿namespace HuntTheWumpus3d.Infrastructure
+﻿using System;
+
+namespace HuntTheWumpus3d.Infrastructure
 {
     /// <summary>
     ///     This class basically serves as a immutable tuple that allows me to pass

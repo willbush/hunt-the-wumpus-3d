@@ -6,7 +6,7 @@
         public const string PlayPrompt = "Play again? (Y-N)";
         public const string SetupPrompt = "Same Setup? (Y-N)";
         public const string NumOfRoomsToShootPrompt = "No. or rooms (0-5)?";
-        public const string RoomNumPrompt = "Room #?";
+        public const string RoomNumPrompt = "Enter a space separated list of rooms (e.g. 1 2 3 4 5)";
 
         public const string PitWarning = "I feel a draft!";
         public const string WumpusWarning = "I Smell a Wumpus.";

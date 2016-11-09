@@ -8,8 +8,9 @@ namespace HuntTheWumpus3d.Entities
     public class Player : GameEntity
     {
         private const int MaxNumberOfArrows = 5;
-        private static readonly Logger Logger = Logger.Instance;
+        private static readonly Logger Log = Logger.Instance;
         private readonly int _initialRoomNum;
+        private readonly InputHandler _inputHandler = InputHandler.Instance;
 
         public Player(int roomNumber) : base(roomNumber)
         {
@@ -22,18 +23,22 @@ namespace HuntTheWumpus3d.Entities
         /// <summary>
         ///     Requests where the player wants to move to, validates the input, and moves the player.
         /// </summary>
-        public void Move()
+        public void Move(Action<Action<EndState>> checkPlayerMovement, Action<EndState> gameOverHandler)
         {
-            Logger.Write("Where to? ");
-            string response = Console.ReadLine();
-
-            int adjacentRoom;
-            while (!int.TryParse(response, out adjacentRoom) || !Map.IsAdjacent(RoomNumber, adjacentRoom))
+            Log.Write("Where to? ");
+            _inputHandler.PerformOnceOnTypedStringWhen(IsAdjacent, adjacentRoom =>
             {
-                Logger.Write("Not Possible - Where to? ");
-                response = Console.ReadLine();
-            }
-            RoomNumber = adjacentRoom;
+                RoomNumber = int.Parse(adjacentRoom);
+                checkPlayerMovement(gameOverHandler);
+            });
+        }
+
+        private bool IsAdjacent(string s)
+        {
+            int adjacentRoom;
+            if (int.TryParse(s, out adjacentRoom) && Map.IsAdjacent(RoomNumber, adjacentRoom)) return true;
+            Log.Write("Not Possible - Where to? ");
+            return false;
         }
 
         internal void Move(int roomNumber)
@@ -47,60 +52,99 @@ namespace HuntTheWumpus3d.Entities
         ///     arrows traversal path is checked for a hit to determine end game state.
         /// </summary>
         /// <param name="wumpusRoomNumber">current wumpus room number</param>
+        /// <param name="gameOverHandler"></param>
         /// <returns>game end state result</returns>
-        public EndState ShootArrow(int wumpusRoomNumber)
+        public void ShootArrow(int wumpusRoomNumber, Action<EndState> gameOverHandler)
         {
-            EndState endState;
-            int numOfRooms = GetNumRoomsToTraverse();
+            OnNumOfRoomsToTraverseDo(numToTraverse =>
+            {
+                if (numToTraverse > 0)
+                {
+                    CrookedArrowCount = CrookedArrowCount - 1;
+                    OnRoomsToTraverseDo(numToTraverse, rooms => ShootArrow(rooms, wumpusRoomNumber, gameOverHandler));
+                }
+                else
+                {
+                    Log.Write("OK, suit yourself...");
+                    gameOverHandler(new EndState());
+                }
+            });
+        }
 
-            if (numOfRooms > 0)
+        // Requests the player to give the list of rooms they want the arrow to traverse.
+        private void OnRoomsToTraverseDo(int numOfRooms, Action<List<int>> callback)
+        {
+            Log.Write(Message.RoomNumPrompt);
+            _inputHandler.PerformOnceOnTypedStringWhen(s => CanTraverseRooms(s, numOfRooms), s =>
             {
-                CrookedArrowCount = CrookedArrowCount - 1;
-                endState = ShootArrow(GetRoomsToTraverse(numOfRooms), wumpusRoomNumber);
-            }
-            else
+                var rooms = new List<int>();
+                s.Split(' ').ToList().ForEach(r => rooms.Add(int.Parse(r)));
+                callback(rooms);
+            });
+        }
+
+        private static bool CanTraverseRooms(string s, int numOfRooms)
+        {
+            var roomNumbers = s.Split(' ');
+            if (roomNumbers.Length != numOfRooms)
             {
-                Logger.Write("OK, suit yourself...");
-                endState = new EndState();
+                Log.Write($"Incorrect number of rooms entered. Should be: {numOfRooms}");
+                return false;
             }
-            return endState;
+
+            var rooms = new List<int>();
+            foreach (string r in roomNumbers)
+            {
+                int roomNumber;
+                if (!int.TryParse(r, out roomNumber) || roomNumber < 0 || roomNumber > Map.NumOfRooms)
+                {
+                    Log.Write("Bad number - try again:");
+                    return false;
+                }
+                if (IsTooCrooked(roomNumber, rooms))
+                {
+                    Log.Write(Message.TooCrooked);
+                    return false;
+                }
+                rooms.Add(roomNumber);
+            }
+            return true;
         }
 
         //Requests from the player how many rooms they want the arrow they're shooting to traverse.
-        private static int GetNumRoomsToTraverse()
+        private void OnNumOfRoomsToTraverseDo(Action<int> callback)
+        {
+            Log.Write(Message.NumOfRoomsToShootPrompt);
+            _inputHandler.PerformOnceOnTypedStringWhen(IsNumWithinBounds, s => { callback(int.Parse(s)); });
+        }
+
+        private static bool IsNumWithinBounds(string s)
         {
             const int lowerBound = 0;
             const int upperBound = 5;
-            int numOfRooms;
-            string response;
-
-            do
-            {
-                Logger.Write(Message.NumOfRoomsToShootPrompt);
-                response = Console.ReadLine();
-            } while (!int.TryParse(response, out numOfRooms) || numOfRooms < lowerBound || numOfRooms > upperBound);
-
-            return numOfRooms;
+            int n;
+            return int.TryParse(s, out n) && n >= lowerBound && n <= upperBound;
         }
 
         // Traverses the given rooms or randomly selected adjacent rooms if the given rooms are not traversable.
         // Checks if the arrow hit the player, wumpus, or was a miss, and game state is set accordingly.
-        private EndState ShootArrow(IReadOnlyCollection<int> roomsToTraverse, int wumpusRoomNum)
+        private void ShootArrow(IReadOnlyCollection<int> roomsToTraverse, int wumpusRoomNum,
+            Action<EndState> gameOverHandler)
         {
             var endstate = Traverse(roomsToTraverse).Select(r => HitTarget(r, wumpusRoomNum))
                 .FirstOrDefault(e => e.IsGameOver);
 
-            if (endstate != null) return endstate;
+            if (endstate != null) gameOverHandler(endstate);
 
-            Logger.Write(Message.Missed);
-            return CrookedArrowCount == 0
+            Log.Write(Message.Missed);
+            gameOverHandler(CrookedArrowCount == 0
                 ? new EndState(true, $"{Message.OutOfArrows}\n{Message.LoseMessage}")
-                : new EndState();
+                : new EndState());
         }
 
         private EndState HitTarget(int currentRoom, int wumpusRoomNum)
         {
-            Logger.Write(currentRoom.ToString());
+            Log.Write(currentRoom.ToString());
             EndState endState;
             if (RoomNumber == currentRoom)
             {
@@ -172,34 +216,6 @@ namespace HuntTheWumpus3d.Entities
             }
         }
 
-        // Requests the player to give the list of rooms they want the arrow to traverse.
-        private static List<int> GetRoomsToTraverse(int numOfRooms)
-        {
-            var rooms = new List<int>();
-            var count = 1;
-
-            while (count <= numOfRooms)
-            {
-                Logger.Write(Message.RoomNumPrompt);
-                int roomNumber;
-                if (!int.TryParse(Console.ReadLine(), out roomNumber) || roomNumber < 0 || roomNumber > Map.NumOfRooms)
-                {
-                    Logger.Write("Bad number - try again:");
-                    continue;
-                }
-                if (IsTooCrooked(roomNumber, rooms))
-                {
-                    Logger.Write(Message.TooCrooked);
-                }
-                else
-                {
-                    rooms.Add(roomNumber);
-                    count = count + 1;
-                }
-            }
-            return rooms;
-        }
-
         // A requested room number is too crooked for an arrow to go into when:
         // The requested room is the same as the previously requested room
         // (essentially asking the arrow to stay in the same room).
@@ -213,7 +229,7 @@ namespace HuntTheWumpus3d.Entities
 
         public override void PrintLocation()
         {
-            Logger.Write($"You are in room {RoomNumber}");
+            Log.Write($"You are in room {RoomNumber}");
             Map.PrintAdjacentRoomNumbers(RoomNumber);
         }
 
