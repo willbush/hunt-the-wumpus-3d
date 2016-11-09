@@ -25,6 +25,7 @@ namespace HuntTheWumpus3d
         {
             _graphicsDevice = graphicsDevice;
             IsCheatMode = isCheatMode;
+            CreateRooms();
             var occupiedRooms = new HashSet<int>();
 
             Player = new Player(GetRandomAvailableRoom(occupiedRooms));
@@ -82,7 +83,7 @@ namespace HuntTheWumpus3d
             {20, new HashSet<int> {13, 16, 19}}
         };
 
-        public void LoadContent()
+        private void CreateRooms()
         {
             var vertices = BuildDodecahedron();
             var spheres = new List<Sphere>();
