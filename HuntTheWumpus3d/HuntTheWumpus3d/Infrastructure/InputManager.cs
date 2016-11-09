@@ -5,18 +5,18 @@ using MonoGame.Extended.InputListeners;
 
 namespace HuntTheWumpus3d.Infrastructure
 {
-    public class InputHandler
+    public class InputManager
     {
-        private static InputHandler _instance;
+        private static InputManager _instance;
         private string _typedString;
 
-        private InputHandler()
+        private InputManager()
         {
         }
 
         public KeyboardListener KeyListener { get; set; } = new KeyboardListener();
 
-        public static InputHandler Instance => _instance ?? (_instance = new InputHandler());
+        public static InputManager Instance => _instance ?? (_instance = new InputManager());
 
         public void PerformOnceOnTypedStringWhen(Func<string, bool> isPredicateTrue, Action<string> action)
         {
@@ -35,8 +35,7 @@ namespace HuntTheWumpus3d.Infrastructure
                     action(_typedString);
                     _typedString = string.Empty;
                 }
-
-                if (args.Key == Keys.Enter)
+                else if (args.Key == Keys.Enter)
                 {
                     _typedString = string.Empty;
                 }

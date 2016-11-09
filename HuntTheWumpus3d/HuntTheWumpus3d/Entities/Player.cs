@@ -10,7 +10,7 @@ namespace HuntTheWumpus3d.Entities
         private const int MaxNumberOfArrows = 5;
         private static readonly Logger Log = Logger.Instance;
         private readonly int _initialRoomNum;
-        private readonly InputHandler _inputHandler = InputHandler.Instance;
+        private readonly InputManager _inputManager = InputManager.Instance;
 
         public Player(int roomNumber) : base(roomNumber)
         {
@@ -26,7 +26,7 @@ namespace HuntTheWumpus3d.Entities
         public void Move(Action<Action<EndState>> checkPlayerMovement, Action<EndState> gameOverHandler)
         {
             Log.Write("Where to? ");
-            _inputHandler.PerformOnceOnTypedStringWhen(IsAdjacent, adjacentRoom =>
+            _inputManager.PerformOnceOnTypedStringWhen(IsAdjacent, adjacentRoom =>
             {
                 RoomNumber = int.Parse(adjacentRoom);
                 checkPlayerMovement(gameOverHandler);
@@ -75,7 +75,7 @@ namespace HuntTheWumpus3d.Entities
         private void OnRoomsToTraverseDo(int numOfRooms, Action<List<int>> callback)
         {
             Log.Write(Message.RoomNumPrompt);
-            _inputHandler.PerformOnceOnTypedStringWhen(s => CanTraverseRooms(s, numOfRooms), s =>
+            _inputManager.PerformOnceOnTypedStringWhen(s => CanTraverseRooms(s, numOfRooms), s =>
             {
                 var rooms = new List<int>();
                 s.Split(' ').ToList().ForEach(r => rooms.Add(int.Parse(r)));
@@ -115,7 +115,7 @@ namespace HuntTheWumpus3d.Entities
         private void OnNumOfRoomsToTraverseDo(Action<int> callback)
         {
             Log.Write(Message.NumOfRoomsToShootPrompt);
-            _inputHandler.PerformOnceOnTypedStringWhen(IsNumWithinBounds, s => { callback(int.Parse(s)); });
+            _inputManager.PerformOnceOnTypedStringWhen(IsNumWithinBounds, s => { callback(int.Parse(s)); });
         }
 
         private static bool IsNumWithinBounds(string s)
@@ -170,7 +170,7 @@ namespace HuntTheWumpus3d.Entities
             ICollection<int> traversedRooms = roomsToTraverse.TakeWhile(
                 nextRoom =>
                 {
-                    var adjacentRooms = Map.Rooms[currentRoom];
+                    var adjacentRooms = Map.AdjacentTo[currentRoom];
                     if (!adjacentRooms.Contains(nextRoom)) return false;
                     currentRoom = nextRoom;
                     return true;
@@ -193,7 +193,7 @@ namespace HuntTheWumpus3d.Entities
             // if no traversed rooms, randomly select an adjacent next room and set the previous to the room the player is in.
             if (!traversedRooms.Any())
             {
-                var rooms = Map.Rooms[currentRoom];
+                var rooms = Map.AdjacentTo[currentRoom];
                 int firstRoom = rooms.ElementAt(new Random().Next(rooms.Count));
 
                 previousRoom = currentRoom;
@@ -207,7 +207,7 @@ namespace HuntTheWumpus3d.Entities
             // while we need more rooms, get a randomly selected adjacent room that is not the previously traversed room.
             for (var traversed = 0; traversed < numberToTraverse; ++traversed)
             {
-                var rooms = Map.Rooms[currentRoom].Where(r => r != previousRoom).ToArray();
+                var rooms = Map.AdjacentTo[currentRoom].Where(r => r != previousRoom).ToArray();
                 int nextRoom = rooms.ElementAt(new Random().Next(rooms.Length));
 
                 traversedRooms.Add(currentRoom);

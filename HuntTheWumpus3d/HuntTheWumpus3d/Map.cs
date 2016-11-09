@@ -59,7 +59,7 @@ namespace HuntTheWumpus3d
         // Each key is the room number and its value is the set of adjacent rooms.
         // A dictionary of hash sets is definitely overkill given the constant number of elements, 
         // but with it comes a lot of Linq expression convenience. 
-        internal static Dictionary<int, HashSet<int>> Rooms { get; } = new Dictionary<int, HashSet<int>>
+        internal static Dictionary<int, HashSet<int>> AdjacentTo { get; } = new Dictionary<int, HashSet<int>>
         {
             {1, new HashSet<int> {2, 5, 8}},
             {2, new HashSet<int> {1, 3, 10}},
@@ -145,6 +145,24 @@ namespace HuntTheWumpus3d
             return vertices;
         }
 
+        public void Update()
+        {
+            // reset room colors;
+            foreach (var r in _rooms)
+                r.Color = Color.Black;
+
+            _rooms[Player.RoomNumber - 1].Color = Color.Blue;
+            foreach (int i in AdjacentTo[Player.RoomNumber])
+                _rooms[i - 1].Color = Color.LightBlue;
+
+            if (!IsCheatMode)
+            {
+                _superBats.ForEach(b => _rooms[b.RoomNumber - 1].Color = Color.Purple);
+                _deadlyHazards.ForEach(h => _rooms[h.RoomNumber - 1].Color = Color.BlueViolet);
+                _rooms[Wumpus.RoomNumber - 1].Color = Color.DarkRed;
+            }
+        }
+
         public void Draw(Matrix world, Matrix view, Matrix projection)
         {
             _rooms.ToList().ForEach(r => r.Draw(world, view, projection));
@@ -185,18 +203,17 @@ namespace HuntTheWumpus3d
         /// <summary>
         ///     Updates the state of the game on the map.
         /// </summary>
-        public void Update()
+        public void TakeTurn()
         {
             Logger.Write("");
             Wumpus.Update(this);
 
-            var roomsAdjacentToPlayer = Rooms[Player.RoomNumber];
-            _hazards.ForEach(
-                h =>
-                {
-                    if (roomsAdjacentToPlayer.Contains(h.RoomNumber))
-                        h.PrintHazardWarning();
-                });
+            var roomsAdjacentToPlayer = AdjacentTo[Player.RoomNumber];
+            _hazards.ForEach(h =>
+            {
+                if (roomsAdjacentToPlayer.Contains(h.RoomNumber))
+                    h.PrintHazardWarning();
+            });
             Player.PrintLocation();
         }
 
@@ -205,7 +222,7 @@ namespace HuntTheWumpus3d
         /// </summary>
         public int GetSafeRoomNextTo(int roomNumber)
         {
-            var safeAdjacentRooms = Rooms[roomNumber].Except(_roomsWithStaticHazards).ToArray();
+            var safeAdjacentRooms = AdjacentTo[roomNumber].Except(_roomsWithStaticHazards).ToArray();
             return safeAdjacentRooms.ElementAt(new Random().Next(safeAdjacentRooms.Length));
         }
 
@@ -238,7 +255,7 @@ namespace HuntTheWumpus3d
         public static void PrintAdjacentRoomNumbers(int roomNum)
         {
             var sb = new StringBuilder();
-            foreach (int room in Rooms[roomNum])
+            foreach (int room in AdjacentTo[roomNum])
                 sb.Append(room + " ");
 
             Logger.Write($"Tunnels lead to {sb}");
@@ -246,7 +263,7 @@ namespace HuntTheWumpus3d
 
         public static bool IsAdjacent(int currentRoom, int adjacentRoom)
         {
-            return Rooms[currentRoom].Contains(adjacentRoom);
+            return AdjacentTo[currentRoom].Contains(adjacentRoom);
         }
 
         private void PrintHazards()

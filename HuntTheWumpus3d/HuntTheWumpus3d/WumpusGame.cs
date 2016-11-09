@@ -10,7 +10,7 @@ namespace HuntTheWumpus3d
 {
     public class WumpusGame : Game
     {
-        private readonly InputHandler _inputHandler;
+        private readonly InputManager _inputManager;
         private readonly bool _isCheatMode;
         private readonly Logger _logger;
         private Vector3 _cameraPosition;
@@ -32,7 +32,7 @@ namespace HuntTheWumpus3d
         public WumpusGame(bool isCheatMode)
         {
             _isCheatMode = isCheatMode;
-            _inputHandler = InputHandler.Instance;
+            _inputManager = InputManager.Instance;
             _logger = Logger.Instance;
 
             var g = new GraphicsDeviceManager(this)
@@ -58,7 +58,7 @@ namespace HuntTheWumpus3d
 
             Play();
 
-            _inputHandler.KeyListener.KeyReleased += (sender, args) =>
+            _inputManager.KeyListener.KeyReleased += (sender, args) =>
             {
                 if (args.Key == Keys.Escape)
                     Exit();
@@ -71,7 +71,7 @@ namespace HuntTheWumpus3d
 
         private void Play()
         {
-            _map.Update();
+            _map.TakeTurn();
             _logger.Write(Message.ActionPrompt);
 
             EventHandler<KeyboardEventArgs> actionHandler = null;
@@ -80,20 +80,20 @@ namespace HuntTheWumpus3d
                 switch (args.Key)
                 {
                     case Keys.S:
-                        _inputHandler.KeyListener.KeyReleased -= actionHandler;
+                        _inputManager.KeyListener.KeyReleased -= actionHandler;
                         _map.PlayerShootArrow(GameOverHandler);
                         break;
                     case Keys.M:
-                        _inputHandler.KeyListener.KeyReleased -= actionHandler;
+                        _inputManager.KeyListener.KeyReleased -= actionHandler;
                         _map.MovePlayer(GameOverHandler);
                         break;
                     case Keys.Q:
-                        _inputHandler.KeyListener.KeyReleased -= actionHandler;
+                        _inputManager.KeyListener.KeyReleased -= actionHandler;
                         RequestPlayAgain();
                         break;
                 }
             };
-            _inputHandler.KeyListener.KeyReleased += actionHandler;
+            _inputManager.KeyListener.KeyReleased += actionHandler;
         }
 
         private void GameOverHandler(EndState es)
@@ -119,16 +119,16 @@ namespace HuntTheWumpus3d
                 switch (args.Key)
                 {
                     case Keys.Y:
-                        _inputHandler.KeyListener.KeyReleased -= playAgainResponseHandler;
+                        _inputManager.KeyListener.KeyReleased -= playAgainResponseHandler;
                         RequestMapReset();
                         break;
                     case Keys.N:
-                        _inputHandler.KeyListener.KeyReleased -= playAgainResponseHandler;
+                        _inputManager.KeyListener.KeyReleased -= playAgainResponseHandler;
                         Exit();
                         break;
                 }
             };
-            _inputHandler.KeyListener.KeyReleased += playAgainResponseHandler;
+            _inputManager.KeyListener.KeyReleased += playAgainResponseHandler;
         }
 
         private void RequestMapReset()
@@ -141,18 +141,18 @@ namespace HuntTheWumpus3d
                 switch (args.Key)
                 {
                     case Keys.Y:
-                        _inputHandler.KeyListener.KeyReleased -= resetResponseHandler;
+                        _inputManager.KeyListener.KeyReleased -= resetResponseHandler;
                         _map.Reset();
                         Play();
                         break;
                     case Keys.N:
-                        _inputHandler.KeyListener.KeyReleased -= resetResponseHandler;
+                        _inputManager.KeyListener.KeyReleased -= resetResponseHandler;
                         _map = new Map(GraphicsDevice, _isCheatMode);
                         Play();
                         break;
                 }
             };
-            _inputHandler.KeyListener.KeyReleased += resetResponseHandler;
+            _inputManager.KeyListener.KeyReleased += resetResponseHandler;
         }
 
         protected override void LoadContent()
@@ -175,7 +175,8 @@ namespace HuntTheWumpus3d
         protected override void Update(GameTime gameTime)
         {
             GraphicsDevice.RasterizerState = _isWireFrame ? _wireFrameState : RasterizerState.CullCounterClockwise;
-            _inputHandler.Update(gameTime);
+            _inputManager.Update(gameTime);
+            _map.Update();
 
             // Create camera matrices, making the object spin.
             var time = (float) gameTime.TotalGameTime.TotalSeconds;

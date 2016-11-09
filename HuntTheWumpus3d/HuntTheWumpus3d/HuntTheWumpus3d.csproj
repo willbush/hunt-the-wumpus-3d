@@ -45,7 +45,7 @@
     <Compile Include="Entities\Player.cs" />
     <Compile Include="Entities\Wumpus.cs" />
     <Compile Include="Infrastructure\EndState.cs" />
-    <Compile Include="Infrastructure\InputHandler.cs" />
+    <Compile Include="Infrastructure\InputManager.cs" />
     <Compile Include="Infrastructure\Logger.cs" />
     <Compile Include="Infrastructure\Message.cs" />
     <Compile Include="Map.cs" />
