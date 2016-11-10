@@ -1,4 +1,5 @@
 ﻿using HuntTheWumpus3d.Infrastructure;
+using Microsoft.Xna.Framework;
 
 namespace HuntTheWumpus3d.Entities
 {
@@ -8,6 +9,7 @@ namespace HuntTheWumpus3d.Entities
 
         public SuperBats(int roomNumber) : base(roomNumber)
         {
+            EntityColor = Color.Purple;
         }
 
         public override void PrintLocation()
@@ -30,6 +32,7 @@ namespace HuntTheWumpus3d.Entities
         {
             if (player.RoomNumber != RoomNumber) return false;
 
+            IsDiscovered = true;
             Logger.Write(Message.BatSnatch);
             player.Move(Map.GetAnyRandomRoomNumber());
             return true;

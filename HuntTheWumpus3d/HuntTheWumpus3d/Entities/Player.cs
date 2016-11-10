@@ -236,7 +236,7 @@ namespace HuntTheWumpus3d.Entities
         /// <summary>
         ///     Resets player to initial state.
         /// </summary>
-        public void Reset()
+        public override void Reset()
         {
             RoomNumber = _initialRoomNum;
             CrookedArrowCount = MaxArrows;

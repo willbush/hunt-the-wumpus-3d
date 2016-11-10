@@ -1,5 +1,5 @@
-﻿using System;
-using HuntTheWumpus3d.Infrastructure;
+﻿using HuntTheWumpus3d.Infrastructure;
+using Microsoft.Xna.Framework;
 
 namespace HuntTheWumpus3d.Entities
 {
@@ -9,6 +9,7 @@ namespace HuntTheWumpus3d.Entities
 
         public BottomlessPit(int roomNumber) : base(roomNumber)
         {
+            EntityColor = Color.Black;
         }
 
         public override void PrintLocation()
@@ -23,9 +24,18 @@ namespace HuntTheWumpus3d.Entities
 
         public override EndState DetermineEndState(int playerRoomNumber)
         {
-            return playerRoomNumber == RoomNumber
-                ? new EndState(true, $"{Message.FellInPit}\n{Message.LoseMessage}")
-                : new EndState();
+            EndState endState;
+
+            if (playerRoomNumber == RoomNumber)
+            {
+                endState = new EndState(true, $"{Message.FellInPit}\n{Message.LoseMessage}");
+                IsDiscovered = true;
+            }
+            else
+            {
+                endState = new EndState();
+            }
+            return endState;
         }
     }
 }

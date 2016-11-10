@@ -11,29 +11,22 @@ namespace HuntTheWumpus3d
     public class WumpusGame : Game
     {
         private readonly InputManager _inputManager;
-        private readonly bool _isCheatMode;
-        private readonly Logger _logger;
+        private readonly Logger _log;
         private Vector3 _cameraPosition;
         private SpriteFont _font;
 
-        // Are we rendering in wireframe mode?
-        private bool _isWireFrame;
         private Map _map;
         private Matrix _projection;
         private SpriteBatch _spriteBatch;
         private Matrix _view;
         private BoxingViewportAdapter _viewportAdapter;
 
-        // store a wireframe rasterize state
-        private RasterizerState _wireFrameState;
-
         private Matrix _world;
 
-        public WumpusGame(bool isCheatMode)
+        public WumpusGame()
         {
-            _isCheatMode = isCheatMode;
             _inputManager = InputManager.Instance;
-            _logger = Logger.Instance;
+            _log = Logger.Instance;
 
             var g = new GraphicsDeviceManager(this)
             {
@@ -54,17 +47,20 @@ namespace HuntTheWumpus3d
             _world = new Matrix();
             _cameraPosition = new Vector3(0, 0, 4.5f);
 
-            _map = new Map(GraphicsDevice, _isCheatMode);
+            _map = new Map(GraphicsDevice);
 
+            _log.Write("Press escape at any time to immediately quit.");
             Play();
 
             _inputManager.KeyListener.KeyReleased += (sender, args) =>
             {
                 if (args.Key == Keys.Escape)
                     Exit();
-
-                if (args.Key == Keys.F)
-                    _isWireFrame = !_isWireFrame;
+                if (args.Key == Keys.RightControl)
+                {
+                    _map.IsCheatMode = !_map.IsCheatMode;
+                    _log.Write($"Cheat mode toggled to {_map.IsCheatMode}");
+                }
             };
             base.Initialize();
         }
@@ -72,7 +68,7 @@ namespace HuntTheWumpus3d
         private void Play()
         {
             _map.TakeTurn();
-            _logger.Write(Message.ActionPrompt);
+            _log.Write(Message.ActionPrompt);
 
             EventHandler<KeyboardEventArgs> actionHandler = null;
             actionHandler = (sender, args) =>
@@ -111,7 +107,7 @@ namespace HuntTheWumpus3d
 
         private void RequestPlayAgain()
         {
-            _logger.Write(Message.PlayPrompt);
+            _log.Write(Message.PlayPrompt);
 
             EventHandler<KeyboardEventArgs> playAgainResponseHandler = null;
             playAgainResponseHandler = (sender, args) =>
@@ -133,7 +129,7 @@ namespace HuntTheWumpus3d
 
         private void RequestMapReset()
         {
-            _logger.Write(Message.SetupPrompt);
+            _log.Write(Message.SetupPrompt);
 
             EventHandler<KeyboardEventArgs> resetResponseHandler = null;
             resetResponseHandler = (sender, args) =>
@@ -147,7 +143,7 @@ namespace HuntTheWumpus3d
                         break;
                     case Keys.N:
                         _inputManager.KeyListener.KeyReleased -= resetResponseHandler;
-                        _map = new Map(GraphicsDevice, _isCheatMode);
+                        _map = new Map(GraphicsDevice);
                         Play();
                         break;
                 }
@@ -159,11 +155,6 @@ namespace HuntTheWumpus3d
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _font = Content.Load<SpriteFont>("output");
-            _wireFrameState = new RasterizerState
-            {
-                FillMode = FillMode.WireFrame,
-                CullMode = CullMode.None
-            };
         }
 
         protected override void UnloadContent()
@@ -174,7 +165,6 @@ namespace HuntTheWumpus3d
 
         protected override void Update(GameTime gameTime)
         {
-            GraphicsDevice.RasterizerState = _isWireFrame ? _wireFrameState : RasterizerState.CullCounterClockwise;
             _inputManager.Update(gameTime);
             _map.Update();
 
@@ -200,12 +190,9 @@ namespace HuntTheWumpus3d
             GraphicsDevice.Clear(Color.Black);
 
             _spriteBatch.Begin(samplerState: SamplerState.PointWrap, transformMatrix: _viewportAdapter.GetScaleMatrix());
-            _logger.Messages.ForEach(m => _spriteBatch.DrawString(_font, m.Value, m.Position, m.Color));
+            _log.Messages.ForEach(m => _spriteBatch.DrawString(_font, m.Value, m.Position, m.Color));
             _spriteBatch.End();
             _map.Draw(_world, _view, _projection);
-
-            // Reset the fill mode renderstate.
-            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
             base.Draw(gameTime);
         }

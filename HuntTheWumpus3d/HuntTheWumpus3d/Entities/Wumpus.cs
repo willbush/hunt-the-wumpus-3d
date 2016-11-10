@@ -1,5 +1,6 @@
 ﻿using System;
 using HuntTheWumpus3d.Infrastructure;
+using Microsoft.Xna.Framework;
 
 namespace HuntTheWumpus3d.Entities
 {
@@ -11,6 +12,7 @@ namespace HuntTheWumpus3d.Entities
         public Wumpus(int roomNumber) : base(roomNumber)
         {
             _initialRoomNumber = roomNumber;
+            EntityColor = Color.Green;
         }
 
         private bool IsAwake { get; set; }
@@ -75,10 +77,11 @@ namespace HuntTheWumpus3d.Entities
         /// <summary>
         ///     Resets Wumpus to initial state.
         /// </summary>
-        public void Reset()
+        public override void Reset()
         {
             RoomNumber = _initialRoomNumber;
             IsAwake = false;
+            IsDiscovered = false;
         }
     }
 }

@@ -5,11 +5,9 @@ namespace HuntTheWumpus3d
     public static class Program
     {
         [STAThread]
-        private static void Main(string[] arguments)
+        private static void Main()
         {
-            bool isCheatMode = arguments.Length > 0 && arguments[0].ToLower() == "cheat";
-
-            using (var game = new WumpusGame(isCheatMode))
+            using (var game = new WumpusGame())
                 game.Run();
         }
     }

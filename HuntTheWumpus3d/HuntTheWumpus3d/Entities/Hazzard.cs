@@ -6,6 +6,13 @@
         {
         }
 
+        public bool IsDiscovered { get; set; }
+
         public abstract void PrintHazardWarning();
+
+        public override void Reset()
+        {
+            IsDiscovered = false;
+        }
     }
 }

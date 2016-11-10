@@ -6,7 +6,7 @@ namespace HuntTheWumpus3d.Shapes
 {
     public class Sphere : GeometricShape
     {
-        private const float Diameter = 0.6f;
+        private const float Diameter = 0.55f;
         private const int Tessellation = 16;
 
         /// <summary>

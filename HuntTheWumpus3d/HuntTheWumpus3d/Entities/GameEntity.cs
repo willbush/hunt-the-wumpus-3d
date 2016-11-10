@@ -1,4 +1,6 @@
-﻿namespace HuntTheWumpus3d.Entities
+﻿using Microsoft.Xna.Framework;
+
+namespace HuntTheWumpus3d.Entities
 {
     public abstract class GameEntity
     {
@@ -8,7 +10,9 @@
         }
 
         public int RoomNumber { get; protected set; }
+        public Color EntityColor { get; protected set; } = Color.Black;
 
         public abstract void PrintLocation();
+        public abstract void Reset();
     }
 }

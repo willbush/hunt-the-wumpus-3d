@@ -21,10 +21,9 @@ namespace HuntTheWumpus3d
         private readonly HashSet<int> _roomsWithStaticHazards;
         private readonly List<SuperBats> _superBats;
 
-        public Map(GraphicsDevice graphicsDevice, bool isCheatMode)
+        public Map(GraphicsDevice graphicsDevice)
         {
             _graphicsDevice = graphicsDevice;
-            IsCheatMode = isCheatMode;
             CreateRooms();
             var occupiedRooms = new HashSet<int>();
 
@@ -52,7 +51,7 @@ namespace HuntTheWumpus3d
                 PrintHazards();
         }
 
-        public bool IsCheatMode { get; }
+        public bool IsCheatMode { get; set; }
         public Player Player { get; }
         private Wumpus Wumpus { get; }
 
@@ -149,17 +148,25 @@ namespace HuntTheWumpus3d
         {
             // reset room colors;
             foreach (var r in _rooms)
-                r.Color = Color.Black;
+            {
+                r.Color = Color.White;
+            }
 
             _rooms[Player.RoomNumber - 1].Color = Color.Blue;
             foreach (int i in AdjacentTo[Player.RoomNumber])
                 _rooms[i - 1].Color = Color.LightBlue;
 
-            if (!IsCheatMode)
+            if (IsCheatMode)
             {
-                _superBats.ForEach(b => _rooms[b.RoomNumber - 1].Color = Color.Purple);
-                _deadlyHazards.ForEach(h => _rooms[h.RoomNumber - 1].Color = Color.BlueViolet);
-                _rooms[Wumpus.RoomNumber - 1].Color = Color.DarkRed;
+                _hazards.ForEach(h => _rooms[h.RoomNumber - 1].Color = h.EntityColor);
+            }
+            else
+            {
+                _hazards.ForEach(h =>
+                {
+                    if (h.IsDiscovered)
+                        _rooms[h.RoomNumber - 1].Color = h.EntityColor;
+                });
             }
         }
 
@@ -174,7 +181,7 @@ namespace HuntTheWumpus3d
         public void Reset()
         {
             Player.Reset();
-            Wumpus.Reset();
+            _hazards.ForEach(h => h.Reset());
 
             if (IsCheatMode)
                 PrintHazards();
