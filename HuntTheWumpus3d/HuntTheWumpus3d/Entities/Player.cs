@@ -56,26 +56,14 @@ namespace HuntTheWumpus3d.Entities
         /// <returns>game end state result</returns>
         public void ShootArrow(int wumpusRoomNumber, Action<EndState> gameOverHandler)
         {
-            OnNumOfRoomsToTraverseDo(numToTraverse =>
-            {
-                if (numToTraverse > 0)
-                {
-                    CrookedArrowCount = CrookedArrowCount - 1;
-                    OnRoomsToTraverseDo(numToTraverse, rooms => ShootArrow(rooms, wumpusRoomNumber, gameOverHandler));
-                }
-                else
-                {
-                    Log.Write("OK, suit yourself...");
-                    gameOverHandler(new EndState());
-                }
-            });
+            OnRoomsToTraverseDo(rooms => ShootArrow(rooms, wumpusRoomNumber, gameOverHandler));
         }
 
         // Requests the player to give the list of rooms they want the arrow to traverse.
-        private void OnRoomsToTraverseDo(int numOfRooms, Action<List<int>> callback)
+        private void OnRoomsToTraverseDo(Action<List<int>> callback)
         {
             Log.Write(Message.RoomNumPrompt);
-            _inputManager.PerformOnceOnTypedStringWhen(s => CanTraverseRooms(s, numOfRooms), s =>
+            _inputManager.PerformOnceOnTypedStringWhen(CanTraverseRooms, s =>
             {
                 var rooms = new List<int>();
                 s.Split(' ').ToList().ForEach(r => rooms.Add(int.Parse(r)));
@@ -83,12 +71,13 @@ namespace HuntTheWumpus3d.Entities
             });
         }
 
-        private static bool CanTraverseRooms(string s, int numOfRooms)
+        private static bool CanTraverseRooms(string s)
         {
             var roomNumbers = s.Split(' ');
-            if (roomNumbers.Length != numOfRooms)
+            if (roomNumbers.Length == 0 || roomNumbers.Length > 5)
             {
-                Log.Write($"Incorrect number of rooms entered. Should be: {numOfRooms}");
+                Log.Write("Incorrect number of rooms entered.");
+                Log.Write("Must be in range [1, 5]");
                 return false;
             }
 
@@ -111,21 +100,6 @@ namespace HuntTheWumpus3d.Entities
             return true;
         }
 
-        //Requests from the player how many rooms they want the arrow they're shooting to traverse.
-        private void OnNumOfRoomsToTraverseDo(Action<int> callback)
-        {
-            Log.Write(Message.NumOfRoomsToShootPrompt);
-            _inputManager.PerformOnceOnTypedStringWhen(IsNumWithinBounds, s => { callback(int.Parse(s)); });
-        }
-
-        private static bool IsNumWithinBounds(string s)
-        {
-            const int lowerBound = 0;
-            const int upperBound = 5;
-            int n;
-            return int.TryParse(s, out n) && n >= lowerBound && n <= upperBound;
-        }
-
         // Traverses the given rooms or randomly selected adjacent rooms if the given rooms are not traversable.
         // Checks if the arrow hit the player, wumpus, or was a miss, and game state is set accordingly.
         private void ShootArrow(IReadOnlyCollection<int> roomsToTraverse, int wumpusRoomNum,
@@ -134,12 +108,17 @@ namespace HuntTheWumpus3d.Entities
             var endstate = Traverse(roomsToTraverse).Select(r => HitTarget(r, wumpusRoomNum))
                 .FirstOrDefault(e => e.IsGameOver);
 
-            if (endstate != null) gameOverHandler(endstate);
-
-            Log.Write(Message.Missed);
-            gameOverHandler(CrookedArrowCount == 0
-                ? new EndState(true, $"{Message.OutOfArrows}\n{Message.LoseMessage}")
-                : new EndState());
+            if (endstate != null)
+            {
+                gameOverHandler(endstate);
+            }
+            else
+            {
+                Log.Write(Message.Missed);
+                gameOverHandler(CrookedArrowCount == 0
+                    ? new EndState(true, $"{Message.OutOfArrows}\n{Message.LoseMessage}")
+                    : new EndState());
+            }
         }
 
         private EndState HitTarget(int currentRoom, int wumpusRoomNum)

@@ -59,6 +59,9 @@ namespace HuntTheWumpus3d
                 if (args.Key == Keys.RightControl)
                 {
                     _map.IsCheatMode = !_map.IsCheatMode;
+                    if (_map.IsCheatMode)
+                        _map.PrintHazards();
+
                     _log.Write($"Cheat mode toggled to {_map.IsCheatMode}");
                 }
             };

@@ -46,9 +46,6 @@ namespace HuntTheWumpus3d
                 bottomlessPit1.RoomNumber,
                 bottomlessPit2.RoomNumber
             };
-
-            if (IsCheatMode)
-                PrintHazards();
         }
 
         public bool IsCheatMode { get; set; }
@@ -273,7 +270,7 @@ namespace HuntTheWumpus3d
             return AdjacentTo[currentRoom].Contains(adjacentRoom);
         }
 
-        private void PrintHazards()
+        public void PrintHazards()
         {
             Logger.Write("");
             _hazards.ForEach(h => h.PrintLocation());
