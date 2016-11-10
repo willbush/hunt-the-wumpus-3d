@@ -146,7 +146,7 @@ namespace HuntTheWumpus3d.Entities
         {
             int currentRoom = RoomNumber;
 
-            ICollection<int> traversedRooms = roomsToTraverse.TakeWhile(
+            var traversedRooms = roomsToTraverse.TakeWhile(
                 nextRoom =>
                 {
                     var adjacentRooms = Map.AdjacentTo[currentRoom];
@@ -156,32 +156,17 @@ namespace HuntTheWumpus3d.Entities
                 }).ToList();
 
             int numLeftToTraverse = roomsToTraverse.Count - traversedRooms.Count;
-            RandomlyTraverse(traversedRooms, currentRoom, numLeftToTraverse);
+            RandomlyTraverse(traversedRooms, numLeftToTraverse);
             return traversedRooms;
         }
 
         // Adds to the given list of traversed rooms a randomly selected next adjacent room where
         // said selected room is not the previously traversed room (preventing U-turns).
-        private static void RandomlyTraverse(
-            ICollection<int> traversedRooms,
-            int currentRoom,
-            int numberToTraverse)
+        private void RandomlyTraverse(IList<int> traversedRooms, int numberToTraverse)
         {
-            int previousRoom;
-
-            // if no traversed rooms, randomly select an adjacent next room and set the previous to the room the player is in.
-            if (!traversedRooms.Any())
-            {
-                var rooms = Map.AdjacentTo[currentRoom];
-                int firstRoom = rooms.ElementAt(new Random().Next(rooms.Count));
-
-                previousRoom = currentRoom;
-                currentRoom = firstRoom;
-            }
-            else
-            {
-                previousRoom = currentRoom;
-            }
+            var tuple = GetCurrentPrevious(traversedRooms);
+            int currentRoom = tuple.Item1;
+            int previousRoom = tuple.Item2;
 
             // while we need more rooms, get a randomly selected adjacent room that is not the previously traversed room.
             for (var traversed = 0; traversed < numberToTraverse; ++traversed)
@@ -189,10 +174,36 @@ namespace HuntTheWumpus3d.Entities
                 var rooms = Map.AdjacentTo[currentRoom].Where(r => r != previousRoom).ToArray();
                 int nextRoom = rooms.ElementAt(new Random().Next(rooms.Length));
 
-                traversedRooms.Add(currentRoom);
+                traversedRooms.Add(nextRoom);
                 previousRoom = currentRoom;
                 currentRoom = nextRoom;
             }
+        }
+
+        private Tuple<int, int> GetCurrentPrevious(IList<int> traversedRooms)
+        {
+            int currentRoom, previousRoom;
+
+            if (!traversedRooms.Any())
+            {
+                var rooms = Map.AdjacentTo[RoomNumber];
+                int nextRoom = rooms.ElementAt(new Random().Next(rooms.Count));
+                traversedRooms.Add(nextRoom);
+
+                currentRoom = nextRoom;
+                previousRoom = RoomNumber;
+            }
+            else if (traversedRooms.Count == 1)
+            {
+                currentRoom = traversedRooms[traversedRooms.Count - 1];
+                previousRoom = RoomNumber;
+            }
+            else
+            {
+                currentRoom = traversedRooms[traversedRooms.Count - 1];
+                previousRoom = traversedRooms[traversedRooms.Count - 2];
+            }
+            return new Tuple<int, int>(currentRoom, previousRoom);
         }
 
         // A requested room number is too crooked for an arrow to go into when:
