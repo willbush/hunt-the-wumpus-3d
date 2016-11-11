@@ -69,10 +69,18 @@ namespace HuntTheWumpus3d.Entities
         /// <returns>end state</returns>
         public override EndState DetermineEndState(int playerRoomNumber)
         {
-            if (IsAwake && playerRoomNumber == RoomNumber)
-                return new EndState(true, $"{Message.WumpusGotYou}\n{Message.LoseMessage}");
+            EndState endState;
 
-            return new EndState();
+            if (IsAwake && playerRoomNumber == RoomNumber)
+            {
+                IsDiscovered = playerRoomNumber == RoomNumber;
+                endState = new EndState(true, $"{Message.WumpusGotYou}\n{Message.LoseMessage}");
+            }
+            else
+            {
+                endState = new EndState();
+            }
+            return endState;
         }
 
         /// <summary>
