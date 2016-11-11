@@ -21,9 +21,11 @@ namespace HuntTheWumpus3d.Entities
         /// <summary>
         ///     Updates the state of the wumpus.
         /// </summary>
-        public void Update(Map map)
+        public EndState TakeTurn(Map map)
         {
-            if (!IsAwake && map.Player.RoomNumber == RoomNumber)
+            int playerRoomNum = map.Player.RoomNumber;
+
+            if (!IsAwake && playerRoomNum == RoomNumber)
             {
                 Logger.Write(Message.WumpusBump);
                 IsAwake = true;
@@ -33,6 +35,8 @@ namespace HuntTheWumpus3d.Entities
 
             if (IsAwake)
                 Move(map);
+
+            return DetermineEndState(playerRoomNum);
         }
 
         /// <summary>

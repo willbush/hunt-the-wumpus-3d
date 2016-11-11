@@ -39,6 +39,8 @@ namespace HuntTheWumpus3d
             IsMouseVisible = true;
         }
 
+        private bool IsCheatMode { get; set; }
+
         protected override void Initialize()
         {
             const int weight = 900;
@@ -58,8 +60,10 @@ namespace HuntTheWumpus3d
                     Exit();
                 if (args.Key == Keys.RightControl)
                 {
-                    _map.IsCheatMode = !_map.IsCheatMode;
-                    if (_map.IsCheatMode)
+                    IsCheatMode = !IsCheatMode;
+                    _map.IsCheatMode = IsCheatMode;
+
+                    if (IsCheatMode)
                         _map.PrintHazards();
 
                     _log.Write($"Cheat mode toggled to {_map.IsCheatMode}");
@@ -70,7 +74,21 @@ namespace HuntTheWumpus3d
 
         private void Play()
         {
-            _map.TakeTurn();
+            var es = _map.TakeTurn();
+
+            if (es.IsGameOver)
+            {
+                es.Print();
+                RequestPlayAgain();
+            }
+            else
+            {
+                PromptPlayerForAction();
+            }
+        }
+
+        private void PromptPlayerForAction()
+        {
             _log.Write(Message.ActionPrompt);
 
             EventHandler<KeyboardEventArgs> actionHandler = null;
@@ -146,7 +164,7 @@ namespace HuntTheWumpus3d
                         break;
                     case Keys.N:
                         _inputManager.KeyListener.KeyReleased -= resetResponseHandler;
-                        _map = new Map(GraphicsDevice);
+                        _map = new Map(GraphicsDevice, IsCheatMode);
                         Play();
                         break;
                 }

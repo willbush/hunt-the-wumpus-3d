@@ -21,9 +21,10 @@ namespace HuntTheWumpus3d
         private readonly HashSet<int> _roomsWithStaticHazards;
         private readonly List<SuperBats> _superBats;
 
-        public Map(GraphicsDevice graphicsDevice)
+        public Map(GraphicsDevice graphicsDevice, bool isCheatMode = false)
         {
             _graphicsDevice = graphicsDevice;
+            IsCheatMode = isCheatMode;
             CreateRooms();
             var occupiedRooms = new HashSet<int>();
 
@@ -46,6 +47,9 @@ namespace HuntTheWumpus3d
                 bottomlessPit1.RoomNumber,
                 bottomlessPit2.RoomNumber
             };
+
+            if (isCheatMode)
+                PrintHazards();
         }
 
         public bool IsCheatMode { get; set; }
@@ -207,18 +211,22 @@ namespace HuntTheWumpus3d
         /// <summary>
         ///     Updates the state of the game on the map.
         /// </summary>
-        public void TakeTurn()
+        public EndState TakeTurn()
         {
             Logger.Write("");
-            Wumpus.Update(this);
+            var es = Wumpus.TakeTurn(this);
 
-            var roomsAdjacentToPlayer = AdjacentTo[Player.RoomNumber];
-            _hazards.ForEach(h =>
+            if (!es.IsGameOver)
             {
-                if (roomsAdjacentToPlayer.Contains(h.RoomNumber))
-                    h.PrintHazardWarning();
-            });
-            Player.PrintLocation();
+                var roomsAdjacentToPlayer = AdjacentTo[Player.RoomNumber];
+                _hazards.ForEach(h =>
+                {
+                    if (roomsAdjacentToPlayer.Contains(h.RoomNumber))
+                        h.PrintHazardWarning();
+                });
+                Player.PrintLocation();
+            }
+            return es;
         }
 
         /// <summary>
