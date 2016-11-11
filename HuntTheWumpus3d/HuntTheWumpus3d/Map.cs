@@ -193,7 +193,7 @@ namespace HuntTheWumpus3d
             if (availableRooms.Length == 0)
                 throw new InvalidOperationException("All rooms are already occupied.");
 
-            int index = new Random().Next(0, availableRooms.Length);
+            int index = Rand.Next(0, availableRooms.Length);
             int unoccupiedRoom = availableRooms[index];
             occupiedRooms.Add(unoccupiedRoom);
             return unoccupiedRoom;
@@ -201,7 +201,7 @@ namespace HuntTheWumpus3d
 
         public static int GetAnyRandomRoomNumber()
         {
-            return new Random().Next(1, NumOfRooms + 1); // Random number in range [1, 20]
+            return Rand.Next(1, NumOfRooms + 1); // Random number in range [1, 20]
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace HuntTheWumpus3d
         public int GetSafeRoomNextTo(int roomNumber)
         {
             var safeAdjacentRooms = AdjacentTo[roomNumber].Except(_roomsWithStaticHazards).ToArray();
-            return safeAdjacentRooms.ElementAt(new Random().Next(safeAdjacentRooms.Length));
+            return safeAdjacentRooms.ElementAt(Rand.Next(safeAdjacentRooms.Length));
         }
 
         public void PlayerShootArrow(Action<EndState> gameOverHandler)

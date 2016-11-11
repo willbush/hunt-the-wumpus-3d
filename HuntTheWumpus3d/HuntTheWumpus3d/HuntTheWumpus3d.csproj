@@ -48,6 +48,7 @@
     <Compile Include="Infrastructure\InputManager.cs" />
     <Compile Include="Infrastructure\Logger.cs" />
     <Compile Include="Infrastructure\Message.cs" />
+    <Compile Include="Infrastructure\Rand.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="Entities\SuperBats.cs" />
     <Compile Include="WumpusGame.cs" />

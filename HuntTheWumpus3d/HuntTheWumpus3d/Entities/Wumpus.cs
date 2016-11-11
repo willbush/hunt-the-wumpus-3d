@@ -7,6 +7,7 @@ namespace HuntTheWumpus3d.Entities
     public class Wumpus : DeadlyHazard
     {
         private static readonly Logger Logger = Logger.Instance;
+        private static readonly Random Rand = new Random();
         private readonly int _initialRoomNumber;
 
         public Wumpus(int roomNumber) : base(roomNumber)
@@ -48,7 +49,7 @@ namespace HuntTheWumpus3d.Entities
 
         private static bool WumpusFeelsLikeMoving()
         {
-            return new Random().Next(1, 101) > 25; // 75% chance wumpus feels like moving.
+            return Rand.Next(1, 101) > 25; // 75% chance wumpus feels like moving.
         }
 
         public override void PrintLocation()

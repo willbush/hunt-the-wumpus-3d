@@ -172,7 +172,7 @@ namespace HuntTheWumpus3d.Entities
             for (var traversed = 0; traversed < numberToTraverse; ++traversed)
             {
                 var rooms = Map.AdjacentTo[currentRoom].Where(r => r != previousRoom).ToArray();
-                int nextRoom = rooms.ElementAt(new Random().Next(rooms.Length));
+                int nextRoom = rooms.ElementAt(Rand.Next(rooms.Length));
 
                 traversedRooms.Add(nextRoom);
                 previousRoom = currentRoom;
@@ -187,7 +187,7 @@ namespace HuntTheWumpus3d.Entities
             if (!traversedRooms.Any())
             {
                 var rooms = Map.AdjacentTo[RoomNumber];
-                int nextRoom = rooms.ElementAt(new Random().Next(rooms.Count));
+                int nextRoom = rooms.ElementAt(Rand.Next(rooms.Count));
                 traversedRooms.Add(nextRoom);
 
                 currentRoom = nextRoom;
