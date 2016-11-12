@@ -1,14 +1,20 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.InputListeners;
+using MonoGame.Extended.ViewportAdapters;
 
 namespace HuntTheWumpus3d.Infrastructure
 {
     public class InputManager
     {
+        private const float CursorBlinkDelay = 0.5f;
         private static InputManager _instance;
-        private string _typedString;
+        private static readonly Logger Log = Logger.Instance;
+        private float _currentBlinkDelay = CursorBlinkDelay;
+        private bool _isCursorVisible = true;
+        private string _typedString = string.Empty;
 
         private InputManager()
         {
@@ -49,7 +55,32 @@ namespace HuntTheWumpus3d.Infrastructure
 
         public void Update(GameTime gameTime)
         {
+            _currentBlinkDelay -= (float) gameTime.ElapsedGameTime.TotalSeconds;
+
+            if (_currentBlinkDelay <= 0)
+            {
+                _isCursorVisible = !_isCursorVisible;
+                _currentBlinkDelay = CursorBlinkDelay;
+            }
             KeyListener.Update(gameTime);
+        }
+
+        public void Draw(SpriteBatch sb, SpriteFont font, ViewportAdapter va)
+        {
+            sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, transformMatrix: va.GetScaleMatrix());
+
+            const int y = Logger.YPosition + 20;
+            const int x = Logger.XPosition;
+            var position = new Vector2(x, y);
+
+            sb.DrawString(font, _typedString, position, Color.White);
+
+            if (_isCursorVisible)
+                sb.DrawString(font, "_", new Vector2(font.MeasureString(_typedString).X + x, y), Color.White);
+
+            Log.Messages.ForEach(m => sb.DrawString(font, m.Value, m.Position, m.Color));
+
+            sb.End();
         }
     }
 }

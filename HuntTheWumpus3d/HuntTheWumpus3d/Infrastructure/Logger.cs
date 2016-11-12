@@ -5,10 +5,10 @@ namespace HuntTheWumpus3d.Infrastructure
 {
     internal class Logger
     {
+        public const int XPosition = 570;
+        public const int YPosition = 480;
         private const int MessageLimit = 24;
         private const int MessageOffset = 20;
-        private const int XPosition = 570;
-        private const int YPosition = 480;
         private static Logger _instance;
 
         private Logger()

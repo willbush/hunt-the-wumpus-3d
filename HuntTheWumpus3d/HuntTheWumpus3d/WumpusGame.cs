@@ -200,7 +200,7 @@ namespace HuntTheWumpus3d
 
             float aspect = GraphicsDevice.Viewport.AspectRatio;
 
-            _view = Matrix.CreateLookAt(_cameraPosition, Vector3.Right, Vector3.Up);
+            _view = Matrix.CreateLookAt(_cameraPosition, new Vector3(1.3f, 0, 0), Vector3.Up);
             _projection = Matrix.CreatePerspectiveFieldOfView(1, aspect, 1, 10);
 
             base.Update(gameTime);
@@ -210,9 +210,7 @@ namespace HuntTheWumpus3d
         {
             GraphicsDevice.Clear(Color.Black);
 
-            _spriteBatch.Begin(samplerState: SamplerState.PointWrap, transformMatrix: _viewportAdapter.GetScaleMatrix());
-            _log.Messages.ForEach(m => _spriteBatch.DrawString(_font, m.Value, m.Position, m.Color));
-            _spriteBatch.End();
+            _inputManager.Draw(_spriteBatch, _font, _viewportAdapter);
             _map.Draw(_world, _view, _projection);
 
             base.Draw(gameTime);
