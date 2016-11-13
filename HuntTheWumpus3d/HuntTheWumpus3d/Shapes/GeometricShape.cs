@@ -20,7 +20,6 @@ namespace HuntTheWumpus3d.Shapes
         private VertexBuffer _vertexBuffer;
         public Color Color { get; set; } = Color.Violet;
         public Vector3 Position { get; internal set; }
-        public Matrix Rotation { get; internal set; } = Matrix.Identity;
 
         /// <summary>
         ///     Queries the index of the current vertex. This starts at
@@ -141,7 +140,7 @@ namespace HuntTheWumpus3d.Shapes
         public void Draw(Matrix world, Matrix view, Matrix projection)
         {
             // Set BasicEffect parameters.
-            _basicEffect.World = Rotation * world;
+            _basicEffect.World = world;
             _basicEffect.View = view;
             _basicEffect.Projection = projection;
             _basicEffect.DiffuseColor = Color.ToVector3();

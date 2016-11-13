@@ -21,6 +21,8 @@ namespace HuntTheWumpus3d.Shapes
             const int horizontalSegments = Tessellation * 2;
             const float radius = Diameter / 2;
 
+            BoundingSphere = new BoundingSphere(position, radius);
+
             // Start with a single vertex at the bottom of the sphere.
             AddVertex(Vector3.Down * radius, Vector3.Down);
 
@@ -85,5 +87,7 @@ namespace HuntTheWumpus3d.Shapes
             }
             InitializePrimitive(graphicsDevice);
         }
+
+        public BoundingSphere BoundingSphere { get; private set; }
     }
 }

@@ -189,7 +189,7 @@ namespace HuntTheWumpus3d
         protected override void Update(GameTime gameTime)
         {
             _inputManager.Update(gameTime);
-            _map.Update(gameTime);
+            _map.Update(gameTime, _world, _view, _projection, GraphicsDevice.Viewport);
 
             // Create camera matrices, making the object spin.
             var time = (float) gameTime.TotalGameTime.TotalSeconds;
@@ -213,7 +213,7 @@ namespace HuntTheWumpus3d
             GraphicsDevice.Clear(Color.Black);
 
             _inputManager.Draw(_spriteBatch, _font, _viewportAdapter);
-            _map.Draw(_world, _view, _projection);
+            _map.Draw(_spriteBatch, _font, _world, _view, _projection);
 
             base.Draw(gameTime);
         }

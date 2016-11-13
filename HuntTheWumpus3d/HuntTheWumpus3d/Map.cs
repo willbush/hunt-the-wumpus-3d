@@ -7,6 +7,7 @@ using HuntTheWumpus3d.Infrastructure;
 using HuntTheWumpus3d.Shapes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace HuntTheWumpus3d
 {
@@ -17,12 +18,13 @@ namespace HuntTheWumpus3d
         private readonly List<DeadlyHazard> _deadlyHazards;
         private readonly GraphicsDevice _graphicsDevice;
         private readonly List<Hazard> _hazards;
-        private readonly GeometricShape[] _rooms = new GeometricShape[20];
+        private readonly Sphere[] _rooms = new Sphere[20];
         private readonly HashSet<int> _roomsWithStaticHazards;
         private readonly List<SuperBats> _superBats;
         private float _arrowShotLerpAmount;
         private float _playerLerpAmount;
         private float _shotAnimationTime = 1f;
+        private string _currentRoomMouseIsOver;
 
         public Map(GraphicsDevice graphicsDevice, bool isCheatMode = false)
         {
@@ -150,14 +152,69 @@ namespace HuntTheWumpus3d
             return vertices;
         }
 
-        public void Update(GameTime time)
+        public void Update(GameTime time, Matrix world, Matrix view, Matrix projection, Viewport viewport)
         {
             ResetRoomColors();
             ColorAdjacentRoomsToPlayer();
             UpdateHazardColors();
             UpdatePlayerColor(time);
             UpdateAnyShotRoomColors(time);
+            UpdateMouseOver(world, view, projection, viewport);
         }
+
+        private void UpdateMouseOver(Matrix world, Matrix view, Matrix projection, Viewport viewport)
+        {
+            var mouseLocation = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
+            var rooms = _rooms.ToList();
+            var room = rooms
+                .FirstOrDefault(r => Intersects(mouseLocation, r, world, view, projection, viewport));
+
+            _currentRoomMouseIsOver = room != null ? (rooms.IndexOf(room) + 1).ToString() : "";
+        }
+
+        /// <returns>true if mouse is over the given room with no other obstructing room</returns>
+        public bool Intersects(Vector2 mouseLocation, Sphere room, Matrix world, Matrix view, Matrix projection,
+            Viewport viewport)
+        {
+            var boundingSphere = room.BoundingSphere;
+            var mouseRay = CalculateRay(mouseLocation, view, projection, viewport);
+            var roomIntersection = mouseRay.Intersects(boundingSphere.Transform(world));
+
+            if (roomIntersection == null)
+                return false;
+
+            var sortedDistances = new SortedDictionary<float, Sphere> {{roomIntersection.Value, room}};
+
+            foreach (var r in _rooms)
+            {
+                var boundingS = r.BoundingSphere;
+                var ray = CalculateRay(mouseLocation, view, projection, viewport);
+                var intersection = ray.Intersects(boundingS.Transform(world));
+
+                if (intersection != null && !sortedDistances.ContainsKey(intersection.Value))
+                    sortedDistances.Add(intersection.Value, r);
+            }
+            return sortedDistances.Min(x => x.Value == room);
+        }
+
+        public Ray CalculateRay(Vector2 mouseLocation, Matrix view, Matrix projection, Viewport viewport)
+        {
+            var nearPoint = viewport.Unproject(new Vector3(mouseLocation.X, mouseLocation.Y, 0.0f),
+                projection,
+                view,
+                Matrix.Identity);
+
+            var farPoint = viewport.Unproject(new Vector3(mouseLocation.X, mouseLocation.Y, 1.0f),
+                projection,
+                view,
+                Matrix.Identity);
+
+            var direction = farPoint - nearPoint;
+            direction.Normalize();
+
+            return new Ray(nearPoint, direction);
+        }
+
 
         private void ResetRoomColors()
         {
@@ -216,9 +273,15 @@ namespace HuntTheWumpus3d
             }
         }
 
-        public void Draw(Matrix world, Matrix view, Matrix projection)
+        public void Draw(SpriteBatch sb, SpriteFont font, Matrix world, Matrix view, Matrix projection)
         {
             _rooms.ToList().ForEach(r => r.Draw(world, view, projection));
+
+            sb.Begin();
+            var mousePosition = new Vector2(Mouse.GetState().X, Mouse.GetState().Y);
+            sb.DrawString(font, _currentRoomMouseIsOver, mousePosition, Color.White, 0, Vector2.Zero, 4,
+                SpriteEffects.None, 0);
+            sb.End();
         }
 
         /// <summary>
@@ -254,9 +317,6 @@ namespace HuntTheWumpus3d
             return Rand.Next(1, NumOfRooms + 1); // Random number in range [1, 20]
         }
 
-        /// <summary>
-        ///     Updates the state of the game on the map.
-        /// </summary>
         public EndState TakeTurn()
         {
             Logger.Write("");
