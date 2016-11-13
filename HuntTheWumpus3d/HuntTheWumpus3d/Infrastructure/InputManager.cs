@@ -47,10 +47,22 @@ namespace HuntTheWumpus3d.Infrastructure
                 }
                 else
                 {
-                    _typedString += args.Character?.ToString() ?? "";
+                    _typedString += ParseArgsToString(args);
                 }
             };
             KeyListener.KeyTyped += responseParser;
+        }
+
+        private static string ParseArgsToString(KeyboardEventArgs args)
+        {
+            var c = args.Character;
+
+            // This is a ugly hack. The sprite font I'm using doesn't have a tab character, so when it's
+            // entered the Draw method throws an exception. I should create a class like this that's a
+            // MonoGame component that is constructed with a IServiceProvider. Resolve the content manager
+            // through the IServiceProvider, get the SpriteFont from the content manager and uses its Characters
+            // collection to check if the value added to the typed string is a contained in the collection.
+            return c.HasValue && c.Value != '\t' ? c.ToString() : "";
         }
 
         public void Update(GameTime gameTime)

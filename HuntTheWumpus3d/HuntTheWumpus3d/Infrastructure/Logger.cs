@@ -5,7 +5,7 @@ namespace HuntTheWumpus3d.Infrastructure
 {
     internal class Logger
     {
-        public const int XPosition = 570;
+        public const int XPosition = 560;
         public const int YPosition = 480;
         private const int MessageLimit = 24;
         private const int MessageOffset = 20;

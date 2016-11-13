@@ -66,14 +66,14 @@ namespace HuntTheWumpus3d.Entities
             _inputManager.PerformOnceOnTypedStringWhen(CanTraverseRooms, s =>
             {
                 var rooms = new List<int>();
-                s.Split(' ').ToList().ForEach(r => rooms.Add(int.Parse(r)));
+                s.Trim().Split(' ').ToList().ForEach(r => rooms.Add(int.Parse(r)));
                 callback(rooms);
             });
         }
 
         private static bool CanTraverseRooms(string s)
         {
-            var roomNumbers = s.Split(' ');
+            var roomNumbers = s.Trim().Split(' ');
             if (roomNumbers.Length == 0 || roomNumbers.Length > 5)
             {
                 Log.Write("Incorrect number of rooms entered.");
@@ -105,6 +105,8 @@ namespace HuntTheWumpus3d.Entities
         private void ShootArrow(IReadOnlyCollection<int> roomsToTraverse, int wumpusRoomNum,
             Action<EndState> gameOverHandler)
         {
+            --CrookedArrowCount;
+
             var endstate = Traverse(roomsToTraverse).Select(r => HitTarget(r, wumpusRoomNum))
                 .FirstOrDefault(e => e.IsGameOver);
 
@@ -115,6 +117,7 @@ namespace HuntTheWumpus3d.Entities
             else
             {
                 Log.Write(Message.Missed);
+                Log.Write($"You now have {CrookedArrowCount} crooked arrows.");
                 gameOverHandler(CrookedArrowCount == 0
                     ? new EndState(true, $"{Message.OutOfArrows}\n{Message.LoseMessage}")
                     : new EndState());
@@ -140,8 +143,12 @@ namespace HuntTheWumpus3d.Entities
             return endState;
         }
 
-        // Attempts to traverse the requested rooms to traverse, but as soon as one
-        // requested room is not adjacent to the current room, it starts traversing rooms randomly.
+        /// <summary>
+        ///     Attempts to traverse the requested rooms to traverse, but as soon as one
+        ///     requested room is not adjacent to the current room, it starts traversing rooms randomly.
+        /// </summary>
+        /// <param name="roomsToTraverse"></param>
+        /// <returns>the list of rooms that were traversed</returns>
         private IEnumerable<int> Traverse(IReadOnlyCollection<int> roomsToTraverse)
         {
             int currentRoom = RoomNumber;
@@ -169,7 +176,7 @@ namespace HuntTheWumpus3d.Entities
             int previousRoom = tuple.Item2;
 
             // while we need more rooms, get a randomly selected adjacent room that is not the previously traversed room.
-            for (var traversed = 0; traversed < numberToTraverse; ++traversed)
+            for (int traversed = traversedRooms.Count; traversed < numberToTraverse; ++traversed)
             {
                 var rooms = Map.AdjacentTo[currentRoom].Where(r => r != previousRoom).ToArray();
                 int nextRoom = rooms.ElementAt(Rand.Next(rooms.Length));

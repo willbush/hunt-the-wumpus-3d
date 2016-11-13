@@ -5,8 +5,7 @@
         public const string ActionPrompt = "Shoot, Move or Quit(S - M - Q)? ";
         public const string PlayPrompt = "Play again? (Y-N)";
         public const string SetupPrompt = "Same Setup? (Y-N)";
-        public const string NumOfRoomsToShootPrompt = "No. or rooms (0-5 and Enter)?";
-        public const string RoomNumPrompt = "Enter a space separated list of rooms.";
+        public const string RoomNumPrompt = "Enter a space separated list of at most 5 rooms.";
 
         public const string PitWarning = "I feel a draft!";
         public const string WumpusWarning = "I Smell a Wumpus.";

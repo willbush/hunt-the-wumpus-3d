@@ -160,6 +160,7 @@ namespace HuntTheWumpus3d
                     case Keys.Y:
                         _inputManager.KeyListener.KeyReleased -= resetResponseHandler;
                         _map.Reset();
+                        _log.Messages.Clear();
                         Play();
                         break;
                     case Keys.N:
