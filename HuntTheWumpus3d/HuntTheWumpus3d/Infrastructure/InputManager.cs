@@ -62,6 +62,7 @@ namespace HuntTheWumpus3d.Infrastructure
             // MonoGame component that is constructed with a IServiceProvider. Resolve the content manager
             // through the IServiceProvider, get the SpriteFont from the content manager and uses its Characters
             // collection to check if the value added to the typed string is a contained in the collection.
+            // That way it would work with any Sprite font, but this is just hard coded.
             return c.HasValue && c.Value != '\t' ? c.ToString() : "";
         }
 

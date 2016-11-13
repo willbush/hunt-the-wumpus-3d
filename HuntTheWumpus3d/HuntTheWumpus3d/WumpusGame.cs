@@ -191,14 +191,7 @@ namespace HuntTheWumpus3d
             _inputManager.Update(gameTime);
             _map.Update(gameTime, _world, _view, _projection, GraphicsDevice.Viewport);
 
-            // Create camera matrices, making the object spin.
-            var time = (float) gameTime.TotalGameTime.TotalSeconds;
-
-            float yaw = time * 0.4f;
-            float pitch = time * 0.7f;
-            float roll = time * 1.1f;
-
-            _world = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
+            UpdateWorldMatrix(gameTime);
 
             float aspect = GraphicsDevice.Viewport.AspectRatio;
 
@@ -206,6 +199,25 @@ namespace HuntTheWumpus3d
             _projection = Matrix.CreatePerspectiveFieldOfView(1, aspect, 1, 10);
 
             base.Update(gameTime);
+        }
+
+        private void UpdateWorldMatrix(GameTime gameTime)
+        {
+            var time = (float) gameTime.TotalGameTime.TotalSeconds;
+
+            var ms = Mouse.GetState();
+            if (ms.LeftButton == ButtonState.Pressed)
+            {
+                const float multiplier = 0.01f;
+                _world = Matrix.CreateFromYawPitchRoll(ms.X * multiplier, ms.Y * multiplier, 0);
+            }
+            else
+            {
+                float yaw = time * 0.4f;
+                float pitch = time * 0.7f;
+                float roll = time * 1.1f;
+                _world = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
+            }
         }
 
         protected override void Draw(GameTime gameTime)

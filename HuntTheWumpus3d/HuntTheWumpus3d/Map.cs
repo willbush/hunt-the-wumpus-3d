@@ -22,9 +22,9 @@ namespace HuntTheWumpus3d
         private readonly HashSet<int> _roomsWithStaticHazards;
         private readonly List<SuperBats> _superBats;
         private float _arrowShotLerpAmount;
+        private string _currentRoomMouseIsOver = string.Empty;
         private float _playerLerpAmount;
         private float _shotAnimationTime = 1f;
-        private string _currentRoomMouseIsOver;
 
         public Map(GraphicsDevice graphicsDevice, bool isCheatMode = false)
         {
