@@ -20,6 +20,9 @@ namespace HuntTheWumpus3d
         private readonly GeometricShape[] _rooms = new GeometricShape[20];
         private readonly HashSet<int> _roomsWithStaticHazards;
         private readonly List<SuperBats> _superBats;
+        private float _arrowShotLerpAmount;
+        private float _playerLerpAmount;
+        private float _shotAnimationTime = 1f;
 
         public Map(GraphicsDevice graphicsDevice, bool isCheatMode = false)
         {
@@ -28,7 +31,7 @@ namespace HuntTheWumpus3d
             CreateRooms();
             var occupiedRooms = new HashSet<int>();
 
-            Player = new Player(GetRandomAvailableRoom(occupiedRooms));
+            Player = new Player(GetRandomAvailableRoom(occupiedRooms), this);
             Wumpus = new Wumpus(GetRandomAvailableRoom(occupiedRooms));
 
             var bottomlessPit1 = new BottomlessPit(GetRandomAvailableRoom(occupiedRooms));
@@ -51,6 +54,8 @@ namespace HuntTheWumpus3d
             if (isCheatMode)
                 PrintHazards();
         }
+
+        public List<int> RoomsArrowTraversed { get; set; } = new List<int>();
 
         public bool IsCheatMode { get; set; }
         public Player Player { get; }
@@ -145,18 +150,31 @@ namespace HuntTheWumpus3d
             return vertices;
         }
 
-        public void Update()
+        public void Update(GameTime time)
         {
-            // reset room colors;
+            ResetRoomColors();
+            ColorAdjacentRoomsToPlayer();
+            UpdateHazardColors();
+            UpdatePlayerColor(time);
+            UpdateAnyShotRoomColors(time);
+        }
+
+        private void ResetRoomColors()
+        {
             foreach (var r in _rooms)
             {
                 r.Color = Color.White;
             }
+        }
 
-            _rooms[Player.RoomNumber - 1].Color = Color.Blue;
+        private void ColorAdjacentRoomsToPlayer()
+        {
             foreach (int i in AdjacentTo[Player.RoomNumber])
                 _rooms[i - 1].Color = Color.LightBlue;
+        }
 
+        private void UpdateHazardColors()
+        {
             if (IsCheatMode)
             {
                 _hazards.ForEach(h => _rooms[h.RoomNumber - 1].Color = h.EntityColor);
@@ -168,6 +186,33 @@ namespace HuntTheWumpus3d
                     if (h.IsDiscovered)
                         _rooms[h.RoomNumber - 1].Color = h.EntityColor;
                 });
+            }
+        }
+
+        private void UpdatePlayerColor(GameTime time)
+        {
+            _playerLerpAmount = (float) (Math.Sin(time.TotalGameTime.TotalSeconds * 5) * 0.5) + 0.5f;
+            var currentRoomColor = _rooms[Player.RoomNumber - 1].Color;
+            _rooms[Player.RoomNumber - 1].Color = Color.Lerp(Color.Blue, currentRoomColor, _playerLerpAmount);
+        }
+
+        private void UpdateAnyShotRoomColors(GameTime time)
+        {
+            if (RoomsArrowTraversed.Any() && _shotAnimationTime > 0)
+            {
+                _arrowShotLerpAmount = (float) (Math.Sin(time.TotalGameTime.TotalSeconds * 5) * 0.5) + 0.5f;
+
+                foreach (int r in RoomsArrowTraversed)
+                {
+                    var room = _rooms[r - 1];
+                    room.Color = Color.Lerp(room.Color, Color.Red, _arrowShotLerpAmount);
+                }
+                _shotAnimationTime -= 0.002f;
+            }
+            else
+            {
+                RoomsArrowTraversed.Clear();
+                _shotAnimationTime = 1.0f;
             }
         }
 
@@ -183,6 +228,7 @@ namespace HuntTheWumpus3d
         {
             Player.Reset();
             _hazards.ForEach(h => h.Reset());
+            RoomsArrowTraversed.Clear();
 
             if (IsCheatMode)
                 PrintHazards();
@@ -240,7 +286,9 @@ namespace HuntTheWumpus3d
 
         public void PlayerShootArrow(Action<EndState> gameOverHandler)
         {
-            Player.ShootArrow(Wumpus.RoomNumber, gameOverHandler);
+            // Clear just in case the player is playing fast before the last shoot animation ended.
+            RoomsArrowTraversed.Clear();
+            Player.ShootArrow(Wumpus, gameOverHandler);
         }
 
         public void MovePlayer(Action<EndState> gameOverHandler)

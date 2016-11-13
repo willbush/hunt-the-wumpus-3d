@@ -11,10 +11,12 @@ namespace HuntTheWumpus3d.Entities
         private static readonly Logger Log = Logger.Instance;
         private readonly int _initialRoomNum;
         private readonly InputManager _inputManager = InputManager.Instance;
+        private readonly Map _map;
 
-        public Player(int roomNumber) : base(roomNumber)
+        public Player(int roomNumber, Map map) : base(roomNumber)
         {
             _initialRoomNum = roomNumber;
+            _map = map;
         }
 
         public int MaxArrows { get; } = MaxNumberOfArrows;
@@ -54,9 +56,9 @@ namespace HuntTheWumpus3d.Entities
         /// <param name="wumpusRoomNumber">current wumpus room number</param>
         /// <param name="gameOverHandler"></param>
         /// <returns>game end state result</returns>
-        public void ShootArrow(int wumpusRoomNumber, Action<EndState> gameOverHandler)
+        public void ShootArrow(Wumpus wumpus, Action<EndState> gameOverHandler)
         {
-            OnRoomsToTraverseDo(rooms => ShootArrow(rooms, wumpusRoomNumber, gameOverHandler));
+            OnRoomsToTraverseDo(rooms => ShootArrow(rooms, wumpus, gameOverHandler));
         }
 
         // Requests the player to give the list of rooms they want the arrow to traverse.
@@ -71,7 +73,7 @@ namespace HuntTheWumpus3d.Entities
             });
         }
 
-        private static bool CanTraverseRooms(string s)
+        private bool CanTraverseRooms(string s)
         {
             var roomNumbers = s.Trim().Split(' ');
             if (roomNumbers.Length == 0 || roomNumbers.Length > 5)
@@ -81,7 +83,7 @@ namespace HuntTheWumpus3d.Entities
                 return false;
             }
 
-            var rooms = new List<int>();
+            var rooms = new List<int> {RoomNumber};
             foreach (string r in roomNumbers)
             {
                 int roomNumber;
@@ -102,17 +104,16 @@ namespace HuntTheWumpus3d.Entities
 
         // Traverses the given rooms or randomly selected adjacent rooms if the given rooms are not traversable.
         // Checks if the arrow hit the player, wumpus, or was a miss, and game state is set accordingly.
-        private void ShootArrow(IReadOnlyCollection<int> roomsToTraverse, int wumpusRoomNum,
+        private void ShootArrow(IReadOnlyCollection<int> roomsToTraverse, Wumpus wumpus,
             Action<EndState> gameOverHandler)
         {
             --CrookedArrowCount;
 
-            var endstate = Traverse(roomsToTraverse).Select(r => HitTarget(r, wumpusRoomNum))
-                .FirstOrDefault(e => e.IsGameOver);
+            var endState = CheckTargetHit(wumpus, Traverse(roomsToTraverse));
 
-            if (endstate != null)
+            if (endState != null)
             {
-                gameOverHandler(endstate);
+                gameOverHandler(endState);
             }
             else
             {
@@ -124,17 +125,37 @@ namespace HuntTheWumpus3d.Entities
             }
         }
 
-        private EndState HitTarget(int currentRoom, int wumpusRoomNum)
+        private EndState CheckTargetHit(Wumpus wumpus, IEnumerable<int> traversedRoom)
+        {
+            EndState endState = null;
+
+            foreach (int r in traversedRoom)
+            {
+                var e = HitTarget(r, wumpus);
+                if (e.IsGameOver)
+                {
+                    endState = e;
+                    _map.RoomsArrowTraversed.Add(r);
+                    break;
+                }
+                _map.RoomsArrowTraversed.Add(r);
+            }
+            return endState;
+        }
+
+        private EndState HitTarget(int currentRoom, Wumpus wumpus)
         {
             Log.Write(currentRoom.ToString());
+
             EndState endState;
             if (RoomNumber == currentRoom)
             {
                 endState = new EndState(true, $"{Message.ArrowGotYou}\n{Message.LoseMessage}");
             }
-            else if (wumpusRoomNum == currentRoom)
+            else if (wumpus.RoomNumber == currentRoom)
             {
                 endState = new EndState(true, Message.WinMessage);
+                wumpus.IsDiscovered = true;
             }
             else
             {
@@ -149,7 +170,7 @@ namespace HuntTheWumpus3d.Entities
         /// </summary>
         /// <param name="roomsToTraverse"></param>
         /// <returns>the list of rooms that were traversed</returns>
-        private IEnumerable<int> Traverse(IReadOnlyCollection<int> roomsToTraverse)
+        private List<int> Traverse(IReadOnlyCollection<int> roomsToTraverse)
         {
             int currentRoom = RoomNumber;
 

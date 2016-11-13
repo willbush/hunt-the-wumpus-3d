@@ -137,6 +137,7 @@ namespace HuntTheWumpus3d
                 {
                     case Keys.Y:
                         _inputManager.KeyListener.KeyReleased -= playAgainResponseHandler;
+                        _log.Messages.Clear();
                         RequestMapReset();
                         break;
                     case Keys.N:
@@ -159,8 +160,8 @@ namespace HuntTheWumpus3d
                 {
                     case Keys.Y:
                         _inputManager.KeyListener.KeyReleased -= resetResponseHandler;
-                        _map.Reset();
                         _log.Messages.Clear();
+                        _map.Reset();
                         Play();
                         break;
                     case Keys.N:
@@ -188,7 +189,7 @@ namespace HuntTheWumpus3d
         protected override void Update(GameTime gameTime)
         {
             _inputManager.Update(gameTime);
-            _map.Update();
+            _map.Update(gameTime);
 
             // Create camera matrices, making the object spin.
             var time = (float) gameTime.TotalGameTime.TotalSeconds;
