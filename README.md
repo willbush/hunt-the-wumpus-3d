@@ -14,7 +14,7 @@
         - [Warnings](#warnings)
         - [Shooting](#shooting)
         - [Winning the game:](#winning-the-game)
-    - [Installation](#installation)
+    - [Building From Source](#building-from-source)
 
 <!-- markdown-toc end -->
 
@@ -107,4 +107,11 @@ When the player wins the game, display, "Hee hee hee - the Wumpus'll getcha next
 
 Once the game is won or lost the player is given the option to re-play the game using the same randomly chosen locations for the Wumpus, bats, and pits, or to have new random locations chosen for them.
 
-## Installation
+## Building From Source
+
+### Windows
+
+1. Install [visual studio 2015](https://www.visualstudio.com/downloads/). This should also install the required required [.NET 4.6.1](https://www.microsoft.com/en-us/download/details.aspx?id=48130)
+
+2. install [monogame](http://www.monogame.net/downloads/) 3.5
+
