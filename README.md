@@ -15,6 +15,7 @@
         - [Shooting](#shooting)
         - [Winning the game:](#winning-the-game)
     - [Building From Source](#building-from-source)
+        - [Windows](#windows)
 
 <!-- markdown-toc end -->
 
