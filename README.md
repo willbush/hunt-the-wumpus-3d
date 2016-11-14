@@ -33,6 +33,9 @@ This is a 3D implementation of Gregory Yob's [Hunt the Wumpus](https://en.wikipe
     - Simply pressing the button will trigger the action. There's no need to press enter.
   - When shooting the player is prompted to enter a space separated list of rooms.
     - Entering text is much like a console, blinking cursor, the ability to backspace, and needing to press (Enter) to submit your list of rooms.
+    
+  - Pressing the (Right Ctrl) button will toggle cheat mode on and off.
+    - Cheat mode displays all the harzards on the map and prints their locations.
 
 ### Mouse Inputs
 

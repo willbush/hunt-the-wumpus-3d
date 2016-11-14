@@ -21,6 +21,7 @@ namespace HuntTheWumpus3d.Infrastructure
         }
 
         public KeyboardListener KeyListener { get; set; } = new KeyboardListener();
+        public MouseListener MouseListener { get; set; } = new MouseListener();
 
         public static InputManager Instance => _instance ?? (_instance = new InputManager());
 
@@ -76,6 +77,7 @@ namespace HuntTheWumpus3d.Infrastructure
                 _currentBlinkDelay = CursorBlinkDelay;
             }
             KeyListener.Update(gameTime);
+            MouseListener.Update(gameTime);
         }
 
         public void Draw(SpriteBatch sb, SpriteFont font, ViewportAdapter va)

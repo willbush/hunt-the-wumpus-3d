@@ -22,6 +22,7 @@ namespace HuntTheWumpus3d
         private BoxingViewportAdapter _viewportAdapter;
 
         private Matrix _world;
+        private bool _mapRotationIsFrozen;
 
         public WumpusGame()
         {
@@ -68,6 +69,11 @@ namespace HuntTheWumpus3d
 
                     _log.Write($"Cheat mode toggled to {_map.IsCheatMode}");
                 }
+            };
+            _inputManager.MouseListener.MouseClicked += (sender, args) =>
+            {
+                if (args.Button == MouseButton.Right)
+                    _mapRotationIsFrozen = !_mapRotationIsFrozen;
             };
             base.Initialize();
         }
@@ -203,21 +209,28 @@ namespace HuntTheWumpus3d
 
         private void UpdateWorldMatrix(GameTime gameTime)
         {
+            if (_mapRotationIsFrozen) return;
+
             var time = (float) gameTime.TotalGameTime.TotalSeconds;
+            float yaw;
+            float pitch;
+            float roll;
 
             var ms = Mouse.GetState();
             if (ms.LeftButton == ButtonState.Pressed)
             {
                 const float multiplier = 0.01f;
-                _world = Matrix.CreateFromYawPitchRoll(ms.X * multiplier, ms.Y * multiplier, 0);
+                yaw = ms.X * multiplier;
+                pitch = ms.Y * multiplier;
+                roll = 0;
             }
             else
             {
-                float yaw = time * 0.4f;
-                float pitch = time * 0.7f;
-                float roll = time * 1.1f;
-                _world = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
+                yaw = time * 0.4f;
+                pitch = time * 0.7f;
+                roll = time * 1.1f;
             }
+            _world = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll);
         }
 
         protected override void Draw(GameTime gameTime)
